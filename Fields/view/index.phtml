@@ -1,0 +1,44 @@
+<?php include $phireHeader; ?>
+    <h1><?=$title; ?></h1>
+<?php if (count($fields) > 0): ?>
+<?php if (null !== $pages): ?>
+    <div class="page-links"><?=$pages; ?></div>
+<?php endif; ?>
+<?php if ($acl->isAllowed($user->role, 'fields', 'add')): ?>
+    <nav id="sub-nav">
+        <nav><a href="<?=$phireUri . '/fields/add'; ?>">+ Add</a></nav>
+    </nav>
+<?php endif; ?>
+<?php if ($acl->isAllowed($user->role, 'fields', 'remove')): ?>
+    <form id="fields-form" action="<?=$phireUri . '/fields/remove'; ?>" method="post">
+<?php endif; ?>
+        <table class="data-table" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <th><a href="<?=$phireUri . '/fields?sort=id';?>">#</a></th>
+                <th><a href="<?=$phireUri . '/fields?sort=name';?>">Name</a></th>
+                <th class="text-center"><?php if ($acl->isAllowed($user->role, 'fields', 'edit')): ?>Edit<?php else: ?>&nbsp;<?php endif; ?></th>
+                <th class="text-center"><?php if ($acl->isAllowed($user->role, 'fields', 'remove')): ?><input type="checkbox" name="checkall" id="checkall" value="rm_fields" /><?php else: ?>&nbsp;<?php endif; ?></th>
+            </tr>
+<?php $i = 1; ?>
+<?php foreach ($fields as $field): ?>
+            <tr>
+                <td><?=$field->id; ?></td>
+                <td><?=$field->name; ?></td>
+                <td><?php if ($acl->isAllowed($user->role, 'fields', 'edit')): ?><a class="edit-link" href="<?=$phireUri . '/fields/edit/' . $field->id; ?>">Edit</a><?php else: ?>&nbsp;<?php endif; ?></td>
+                <td class="text-center"><?php if ($acl->isAllowed($user->role, 'fields', 'remove')): ?><input type="checkbox" name="rm_fields[]" id="rm_fields<?=$i++; ?>" value="<?=$field->id; ?>" /><?php else: ?>&nbsp;<?php endif; ?></td>
+            </tr>
+<?php endforeach; ?>
+        </table>
+<?php if ($acl->isAllowed($user->role, 'fields', 'remove')): ?>
+        <div id="form-footer"><input type="submit" name="submit" class="process-btn" value="Remove" /></div>
+    </form>
+<?php endif; ?>
+<?php else: ?>
+<?php if ($acl->isAllowed($user->role, 'fields', 'add')): ?>
+    <nav id="sub-nav">
+        <nav><a href="<?=$phireUri . '/fields/add'; ?>">+ Add</a></nav>
+    </nav>
+<?php endif; ?>
+    <p>There are currently no fields.</p>
+<?php endif; ?>
+<?php include $phireFooter; ?>
