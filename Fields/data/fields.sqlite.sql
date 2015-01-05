@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
   "encrypt" integer NOT NULL,
   "order" integer NOT NULL,
   "required" integer NOT NULL,
+  "editor" varchar,
   "models" text,
   UNIQUE ("id"),
   CONSTRAINT "fk_group_id" FOREIGN KEY ("group_id") REFERENCES "[{prefix}]field_groups" ("id") ON DELETE SET NULL ON UPDATE CASCADE

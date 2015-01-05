@@ -51,21 +51,22 @@ phire.addModel = function() {
     }).appendTo(jax('#model_type_new_1').parent());
 };
 
-phire.getModelTypes = function(sel, path) {
+phire.getModelTypes = function(sel, path, cur) {
     if (jax(sel).val() != '----') {
+        var cur   = (cur) ? 'cur' : 'new';
         var id    = sel.id.substring(sel.id.lastIndexOf('_') + 1);
-        var opts  = jax('#model_type_new_' + id + ' > option').toArray();
+        var opts  = jax('#model_type_' + cur + '_' + id + ' > option').toArray();
         var start = opts.length - 1;
         for (var i = start; i >= 0; i--) {
             jax(opts[i]).remove();
         }
-        jax('#model_type_new_' + id).append('option', {"value" : '----'}, '----');
+        jax('#model_type_' + cur + '_' + id).append('option', {"value" : '----'}, '----');
 
         if (jax(sel).val() != '----') {
             var json = jax.get(path + '/fields/json/' + jax(sel).val());
             if (json.length > 0) {
                 for (var i = 0; i < json.length; i++) {
-                    jax('#model_type_new_' + id).append('option', {"value" : json[i].type_field + '|' + json[i].type_value}, json[i].type_name);
+                    jax('#model_type_' + cur + '_' + id).append('option', {"value" : json[i].type_field + '|' + json[i].type_value}, json[i].type_name);
                 }
             }
         }
@@ -73,6 +74,18 @@ phire.getModelTypes = function(sel, path) {
 };
 
 jax(document).ready(function(){
+    if (jax('#fields-form')[0] != undefined) {
+        jax('#checkall').click(function(){
+            if (this.checked) {
+                jax('#fields-form').checkAll(this.value);
+            } else {
+                jax('#fields-form').uncheckAll(this.value);
+            }
+        });
+        jax('#fields-form').submit(function(){
+            return jax('#fields-form').checkValidate('checkbox', true);
+        });
+    }
     if (jax('#field-groups-form')[0] != undefined) {
         jax('#checkall').click(function(){
             if (this.checked) {

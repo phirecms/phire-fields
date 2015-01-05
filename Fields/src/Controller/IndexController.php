@@ -81,7 +81,34 @@ class IndexController extends AbstractController
      */
     public function edit($id)
     {
+        $field = new Model\Field();
+        $field->getById($id);
 
+        $this->prepareView('edit.phtml');
+        $this->view->title = 'Fields : Edit : ' . $field->name;
+
+        $form = new Form\Field($this->application->module('Fields')['models'], $field->validators, $field->models);
+        $form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
+             ->setFieldValues($field->toArray());
+
+        if ($this->request->isPost()) {
+            $form->addFilter('strip_tags')
+                 ->setFieldValues($this->request->getPost());
+
+            if ($form->isValid()) {
+                $form->clearFilters()
+                     ->addFilter('html_entity_decode', [ENT_QUOTES, 'UTF-8'])
+                     ->filter();
+                $field = new Model\Field();
+                $field->update($form->getFields());
+
+                Response::redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
+                exit();
+            }
+        }
+
+        $this->view->form = $form;
+        $this->send();
     }
 
     /**
@@ -107,6 +134,7 @@ class IndexController extends AbstractController
     public function json($model)
     {
         $json   = [];
+        $model  = rawurldecode($model);
         $models = $this->application->module('Fields')['models'];
 
         if (isset($models[$model])) {

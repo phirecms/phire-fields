@@ -38,8 +38,8 @@ return [
             ]
         ],
         'models' => [
-            'users' => [],
-            'roles' => []
+            'Phire\Model\User' => [],
+            'Phire\Model\Role' => []
         ]
     ]
 ];

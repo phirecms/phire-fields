@@ -16,6 +16,9 @@
             <tr>
                 <th><a href="<?=$phireUri . '/fields?sort=id';?>">#</a></th>
                 <th><a href="<?=$phireUri . '/fields?sort=name';?>">Name</a></th>
+                <th><a href="<?=$phireUri . '/fields?sort=label';?>">Label</a></th>
+                <th><a href="<?=$phireUri . '/fields?sort=required';?>">Required</a></th>
+                <th><a href="<?=$phireUri . '/fields?sort=order';?>">Order</a></th>
                 <th class="text-center"><?php if ($acl->isAllowed($user->role, 'fields', 'edit')): ?>Edit<?php else: ?>&nbsp;<?php endif; ?></th>
                 <th class="text-center"><?php if ($acl->isAllowed($user->role, 'fields', 'remove')): ?><input type="checkbox" name="checkall" id="checkall" value="rm_fields" /><?php else: ?>&nbsp;<?php endif; ?></th>
             </tr>
@@ -24,6 +27,9 @@
             <tr>
                 <td><?=$field->id; ?></td>
                 <td><?=$field->name; ?></td>
+                <td><?=$field->label; ?></td>
+                <td><?=(($field->required) ? 'Yes' : 'No'); ?></td>
+                <td><?=$field->order; ?></td>
                 <td><?php if ($acl->isAllowed($user->role, 'fields', 'edit')): ?><a class="edit-link" href="<?=$phireUri . '/fields/edit/' . $field->id; ?>">Edit</a><?php else: ?>&nbsp;<?php endif; ?></td>
                 <td class="text-center"><?php if ($acl->isAllowed($user->role, 'fields', 'remove')): ?><input type="checkbox" name="rm_fields[]" id="rm_fields<?=$i++; ?>" value="<?=$field->id; ?>" /><?php else: ?>&nbsp;<?php endif; ?></td>
             </tr>
