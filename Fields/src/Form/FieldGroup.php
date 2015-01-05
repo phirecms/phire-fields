@@ -29,6 +29,21 @@ class FieldGroup extends Form
                         'class'  => 'save-btn wide'
                     ]
                 ],
+                'order' => [
+                    'type'       => 'text',
+                    'label'      => 'Order',
+                    'attributes' => ['size' => 3],
+                    'value'      => 0
+                ],
+                'dynamic' => [
+                    'type'  => 'radio',
+                    'label' => 'Dynamic',
+                    'value' => [
+                        '1' => 'Yes',
+                        '0' => 'No'
+                    ],
+                    'marked' => 0
+                ],
                 'id' => [
                     'type'  => 'hidden',
                     'value' => 0
@@ -37,8 +52,9 @@ class FieldGroup extends Form
             [
                 'name' => [
                     'type'       => 'text',
-                    'label'      => 'Field Group Name',
-                    'attributes' => ['size' => 40]
+                    'label'      => 'Group Name',
+                    'required'   => true,
+                    'attributes' => ['size' => 60]
                 ]
             ]
         ];

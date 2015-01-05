@@ -18,7 +18,22 @@ class FieldGroup extends AbstractModel
      */
     public function getAll($limit = null, $page = null, $sort = null)
     {
+        $order = $this->getSortOrder($sort, $page);
 
+        if (null !== $limit) {
+            $page = ((null !== $page) && ((int)$page > 1)) ?
+                ($page * $limit) - $limit : null;
+
+            return Table\FieldGroups::findAll(null, [
+                'offset' => $page,
+                'limit'  => $limit,
+                'order'  => $order
+            ])->rows();
+        } else {
+            return Table\FieldGroups::findAll(null, [
+                'order'  => $order
+            ])->rows();
+        }
     }
 
     /**
@@ -29,7 +44,13 @@ class FieldGroup extends AbstractModel
      */
     public function getById($id)
     {
-
+        $group = Table\FieldGroups::findById((int)$id);
+        if (isset($group->id)) {
+            $this->data['id']      = $group->id;
+            $this->data['name']    = $group->name;
+            $this->data['order']   = $group->order;
+            $this->data['dynamic'] = $group->dynamic;
+        }
     }
 
     /**
@@ -40,7 +61,14 @@ class FieldGroup extends AbstractModel
      */
     public function save(array $fields)
     {
+        $group = new Table\FieldGroups([
+            'name'    => $fields['name'],
+            'order'   => (int)$fields['order'],
+            'dynamic' => (int)$fields['dynamic']
+        ]);
+        $group->save();
 
+        $this->data = array_merge($this->data, $group->getColumns());
     }
 
     /**
@@ -51,7 +79,15 @@ class FieldGroup extends AbstractModel
      */
     public function update(array $fields)
     {
+        $group = Table\FieldGroups::findById((int)$fields['id']);
+        if (isset($group->id)) {
+            $group->name    = $fields['name'];
+            $group->order   = (int)$fields['order'];
+            $group->dynamic = (int)$fields['dynamic'];
+            $group->save();
 
+            $this->data = array_merge($this->data, $group->getColumns());
+        }
     }
 
     /**
@@ -62,8 +98,8 @@ class FieldGroup extends AbstractModel
      */
     public function remove(array $fields)
     {
-        if (isset($fields['rm_fields'])) {
-            foreach ($fields['rm_fields'] as $id) {
+        if (isset($fields['rm_groups'])) {
+            foreach ($fields['rm_groups'] as $id) {
                 $field = Table\FieldGroups::findById((int)$id);
                 if (isset($field->id)) {
                     $field->delete();

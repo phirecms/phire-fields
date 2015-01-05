@@ -2,3 +2,37 @@
  * Fields Module Style Sheet for Phire CMS 2
  */
 
+#field-form, #field-group-form {
+    margin: 10px auto 10px auto;
+    padding: 15px 0 15px 0;
+    width: 100%;
+    border-top: solid 1px #ccc;
+}
+
+#field-form > dl:first-child, #field-group-form > dl:first-child {
+    margin: 0 0 0 20px;
+    padding: 0 0 0 20px;
+    width: 160px;
+    border-left: solid 1px #ccc;
+    float: right;
+    min-height: 300px;
+    height: 100%;
+}
+
+#field-form > dl:first-child > dd, #field-form > dl:first-child > dt,
+#field-group-form > dl:first-child > dd, #field-group-form > dl:first-child > dt {
+    width: 100%;
+}
+
+#field-form > dl:first-child > dt, #field-group-form > dl:first-child > dt {
+    margin: 0 0 5px 0;
+    border-bottom: dotted 1px #aaa;
+}
+
+#field-form > dl:first-child > dd, #field-group-form > dl:first-child > dd {
+    margin: 0 0 10px 0;
+}
+
+#field-form > dl:nth-child(2) > dd, #field-group-form > dl:nth-child(2) > dd, #field-group-form > dl:nth-child(3) > dd {
+    padding: 0 2px 18px 2px;
+}

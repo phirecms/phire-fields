@@ -19,7 +19,25 @@ class IndexController extends AbstractController
      */
     public function index()
     {
+        $field = new Model\Field();
 
+        if ($field->hasPages($this->config->pagination)) {
+            $limit = $this->config->pagination;
+            $pages = new Paginator($field->getCount(), $limit);
+            $pages->useInput(true);
+        } else {
+            $limit = null;
+            $pages = null;
+        }
+
+        $this->prepareView('index.phtml');
+        $this->view->title  = 'Fields';
+        $this->view->pages  = $pages;
+        $this->view->fields = $field->getAll(
+            $limit, $this->request->getQuery('page'), $this->request->getQuery('sort')
+        );
+
+        $this->send();
     }
 
     /**
@@ -29,7 +47,30 @@ class IndexController extends AbstractController
      */
     public function add()
     {
+        $this->prepareView('add.phtml');
+        $this->view->title = 'Fields : Add';
 
+        $form = new Form\Field();
+
+        if ($this->request->isPost()) {
+            $form->addFilter('strip_tags')
+                 ->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
+                 ->setFieldValues($this->request->getPost());
+
+            if ($form->isValid()) {
+                $form->clearFilters()
+                     ->addFilter('html_entity_decode', [ENT_QUOTES, 'UTF-8'])
+                     ->filter();
+                $field = new Model\Field();
+                $field->save($form->getFields());
+
+                Response::redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
+                exit();
+            }
+        }
+
+        $this->view->form = $form;
+        $this->send();
     }
 
     /**
