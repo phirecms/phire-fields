@@ -50,7 +50,7 @@ class IndexController extends AbstractController
         $this->prepareView('add.phtml');
         $this->view->title = 'Fields : Add';
 
-        $form = new Form\Field();
+        $form = new Form\Field($this->application->module('Fields')['models']);
 
         if ($this->request->isPost()) {
             $form->addFilter('strip_tags')
@@ -96,6 +96,25 @@ class IndexController extends AbstractController
             $field->remove($this->request->getPost());
         }
         Response::redirect(BASE_PATH . APP_URI . '/fields?removed=' . time());
+    }
+
+    /**
+     * JSON action method
+     *
+     * @param  string $model
+     * @return void
+     */
+    public function json($model)
+    {
+        $json   = [];
+        $models = $this->application->module('Fields')['models'];
+
+        if (isset($models[$model])) {
+            $json = $models[$model];
+        }
+
+        $this->response->setBody(json_encode($json, JSON_PRETTY_PRINT));
+        $this->send(200, ['Content-Type' => 'application/json']);
     }
 
     /**

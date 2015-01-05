@@ -31,7 +31,7 @@ class FieldGroupsController extends AbstractController
         }
 
         $this->prepareView('groups/index.phtml');
-        $this->view->title  = 'Fields : Groups';
+        $this->view->title  = 'Fields : Field Groups';
         $this->view->pages  = $pages;
         $this->view->groups = $group->getAll(
             $limit, $this->request->getQuery('page'), $this->request->getQuery('sort')
@@ -48,7 +48,7 @@ class FieldGroupsController extends AbstractController
     public function add()
     {
         $this->prepareView('groups/add.phtml');
-        $this->view->title = 'Fields : Groups : Add';
+        $this->view->title = 'Fields : Field Groups : Add';
 
         $form = new Form\FieldGroup();
 
@@ -85,7 +85,7 @@ class FieldGroupsController extends AbstractController
         $group->getById($id);
 
         $this->prepareView('groups/edit.phtml');
-        $this->view->title = 'Fields : Groups : Edit : ' . $group->name;
+        $this->view->title = 'Fields : Field Groups : ' . $group->name;
 
         $form = new Form\FieldGroup();
         $form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])

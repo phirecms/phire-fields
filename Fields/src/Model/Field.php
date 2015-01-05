@@ -93,4 +93,20 @@ class Field extends AbstractModel
         return Table\Fields::findAll()->count();
     }
 
+    public static function models(\Phire\Application $application)
+    {
+        $config = $application->module('Fields');
+        $roles  = \Phire\Table\UserRoles::findAll();
+        foreach ($roles->rows() as $role) {
+            if (isset($config['models']) && isset($config['models']['users'])) {
+                $config['models']['users'][] = [
+                    'type_field' => 'role_id',
+                    'type_value' => $role->id,
+                    'type_name'  => $role->name
+                ];
+            }
+        }
+        $application->mergeModuleConfig('Fields', $config);
+    }
+
 }

@@ -34,6 +34,10 @@ return [
                 'permission' => 'remove'
             ]
         ],
+        '/fields/json/:model' => [
+            'controller' => 'Fields\Controller\IndexController',
+            'action'     => 'json'
+        ],
         '/fields/groups[/]' => [
             'controller' => 'Fields\Controller\FieldGroupsController',
             'action'     => 'index',

@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
   "default_values" text,
   "attributes" varchar,
   "validators" varchar,
-  "encryption" integer NOT NULL,
+  "encrypt" integer NOT NULL,
   "order" integer NOT NULL,
   "required" integer NOT NULL,
   "models" text,

@@ -30,6 +30,16 @@ return [
                     ]
                 ]
             ]
+        ],
+        'events' => [
+            [
+                'name'   => 'app.route.pre',
+                'action' => 'Fields\Model\Field::models'
+            ]
+        ],
+        'models' => [
+            'users' => [],
+            'roles' => []
         ]
     ]
 ];
