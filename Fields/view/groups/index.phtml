@@ -16,6 +16,8 @@
             <tr>
                 <th><a href="<?=$phireUri . '/fields/groups?sort=id';?>">#</a></th>
                 <th><a href="<?=$phireUri . '/fields/groups?sort=name';?>">Name</a></th>
+                <th><a href="<?=$phireUri . '/fields/groups?sort=order';?>">Order</a></th>
+                <th><a href="<?=$phireUri . '/fields/groups?sort=dynamic';?>">Dynamic</a></th>
                 <th class="text-center"><?php if ($acl->isAllowed($user->role, 'field-groups', 'edit')): ?>Edit<?php else: ?>&nbsp;<?php endif; ?></th>
                 <th class="text-center"><?php if ($acl->isAllowed($user->role, 'field-groups', 'remove')): ?><input type="checkbox" name="checkall" id="checkall" value="rm_groups" /><?php else: ?>&nbsp;<?php endif; ?></th>
             </tr>
@@ -24,6 +26,8 @@
             <tr>
                 <td><?=$group->id; ?></td>
                 <td><?=$group->name; ?></td>
+                <td><?=(($group->order) ? 'Yes' : 'No'); ?></td>
+                <td><?=(($group->dynamic) ? 'Yes' : 'No'); ?></td>
                 <td><?php if ($acl->isAllowed($user->role, 'field-groups', 'edit')): ?><a class="edit-link" href="<?=$phireUri . '/fields/groups/edit/' . $group->id; ?>">Edit</a><?php else: ?>&nbsp;<?php endif; ?></td>
                 <td class="text-center"><?php if ($acl->isAllowed($user->role, 'field-groups', 'remove')): ?><input type="checkbox" name="rm_groups[]" id="rm_groups<?=$i++; ?>" value="<?=$group->id; ?>" /><?php else: ?>&nbsp;<?php endif; ?></td>
             </tr>

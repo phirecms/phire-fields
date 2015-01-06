@@ -171,48 +171,70 @@ class Field extends AbstractModel
     }
 
     /**
-     * Check forms fro
+     * Add dynamic fields to the form configs
      *
-     * @param  \Phire\Controller\AbstractController $controller,
      * @param  \Phire\Application $application
      * @return void
      */
-    public static function forms(\Phire\Controller\AbstractController $controller, \Phire\Application $application)
+    public static function forms(\Phire\Application $application)
     {
-        if (($controller->hasView()) && (null !== $controller->view()->form) &&
-            ($controller->view()->form instanceof \Pop\Form\Form)) {
-            $formClass  = get_class($controller->view()->form);
-            $modelClass = str_replace('Form', 'Model', $formClass);
+        $forms  = $application->config()['forms'];
+        $fields = Table\Fields::findAll();
 
-            $sql = Table\Fields::sql();
-            $sql->select()->where('models LIKE %' . addslashes($modelClass) . '%')
-                          ->orderBy('order');
+        if ($fields->count() > 0) {
+            foreach ($fields->rows() as $field) {
+                $field->validators = unserialize($field->validators);
+                $field->models     = unserialize($field->models);
+                foreach ($field->models as $model) {
+                    $form = str_replace('Model', 'Form', $model['model']);
+                    if (isset($forms[$form])) {
+                        end($forms[$form]);
+                        $key = key($forms[$form]);
+                        reset($forms[$form]);
 
-            $fields = Table\Fields::query((string)$sql);
-            if ($fields->count() > 0) {
-                foreach ($fields->rows() as $field) {
-                    $attribs = null;
-                    if (!empty($field->attributes)) {
-                        $attribs    = [];
-                        $attributes = explode('" ', $field->attributes);
-                        foreach ($attributes as $attribute) {
-                            $attributeAry = explode('=', trim($attribute));
-                            $att = substr($attributeAry[1], 1);
-                            if (substr($att, -1) == '"') {
-                                $att = substr($att, 0, -1);
+                        $attribs = null;
+                        if (!empty($field->attributes)) {
+                            $attribs    = [];
+                            $attributes = explode('" ', $field->attributes);
+                            foreach ($attributes as $attribute) {
+                                $attributeAry = explode('=', trim($attribute));
+                                $att = substr($attributeAry[1], 1);
+                                if (substr($att, -1) == '"') {
+                                    $att = substr($att, 0, -1);
+                                }
+                                $attribs[$attributeAry[0]] = $att;
                             }
-                            $attribs[$attributeAry[0]] = $att;
+                        }
+
+                        $validators = [];
+                        if (is_array($field->validators) && (count($field->validators) > 0)) {
+                            foreach ($field->validators as $validator) {
+                                $class   = 'Pop\Validator\\' . $validator['validator'];
+                                $value   = (!empty($validator['value']))   ? $validator['value']   : null;
+                                $message = (!empty($validator['message'])) ? $validator['message'] : null;
+                                $validators[] = new $class($value, $message);
+                            }
+                        }
+
+                        $fieldConfig = [
+                            'type'       => $field->type,
+                            'label'      => $field->label,
+                            'required'   => (bool)$field->required,
+                            'attributes' => $attribs,
+                            'validators' => $validators
+                        ];
+
+                        if (is_numeric($key)) {
+                            $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
+                        } else {
+                            $forms[$form]['field_' . $field->id] = $fieldConfig;
                         }
                     }
-                    $controller->view()->form->addFieldConfig('field_' . $field->id, [
-                        'type'       => $field->type,
-                        'label'      => $field->label,
-                        'required'   => (bool)$field->required,
-                        'attributes' => $attribs
-                    ]);
                 }
             }
         }
+
+        $application->mergeConfig(['forms' => $forms]);
     }
 
     /**

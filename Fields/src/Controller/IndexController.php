@@ -50,7 +50,10 @@ class IndexController extends AbstractController
         $this->prepareView('add.phtml');
         $this->view->title = 'Fields : Add';
 
-        $form = new Form\Field($this->application->module('Fields')['models']);
+        $form = new Form\Field(
+            $this->application->module('Fields')['models'], [], [],
+            $this->application->config()['forms']['Fields\Form\Field']
+        );
 
         if ($this->request->isPost()) {
             $form->addFilter('strip_tags')
@@ -87,7 +90,10 @@ class IndexController extends AbstractController
         $this->prepareView('edit.phtml');
         $this->view->title = 'Fields : Edit : ' . $field->name;
 
-        $form = new Form\Field($this->application->module('Fields')['models'], $field->validators, $field->models);
+        $form = new Form\Field(
+            $this->application->module('Fields')['models'], $field->validators,
+            $field->models, $this->application->config()['forms']['Fields\Form\Field']
+        );
         $form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
              ->setFieldValues($field->toArray());
 

@@ -11,6 +11,7 @@ return [
         'src'        => __DIR__ . '/../src',
         'routes'     => include 'routes.php',
         'resources'  => include 'resources.php',
+        'forms'      => include 'forms.php',
         'nav.phire'  => [
             'fields' => [
                 'name' => 'Fields',
@@ -37,13 +38,13 @@ return [
                 'action' => 'Fields\Model\Field::models'
             ],
             [
-                'name'   => 'app.send',
+                'name'   => 'app.dispatch.pre',
                 'action' => 'Fields\Model\Field::forms'
             ]
         ],
         'models' => [
-            'Phire\Model\User' => [],
-            'Phire\Model\Role' => []
+            'Phire\Model\User'     => [],
+            'Phire\Model\UserRole' => []
         ]
     ]
 ];
