@@ -148,6 +148,12 @@ class Field extends AbstractModel
         return Table\Fields::findAll()->count();
     }
 
+    /**
+     * Get models config for the application
+     *
+     * @param  \Phire\Application $application
+     * @return void
+     */
     public static function models(\Phire\Application $application)
     {
         $config = $application->module('Fields');
@@ -162,6 +168,51 @@ class Field extends AbstractModel
             }
         }
         $application->mergeModuleConfig('Fields', $config);
+    }
+
+    /**
+     * Check forms fro
+     *
+     * @param  \Phire\Controller\AbstractController $controller,
+     * @param  \Phire\Application $application
+     * @return void
+     */
+    public static function forms(\Phire\Controller\AbstractController $controller, \Phire\Application $application)
+    {
+        if (($controller->hasView()) && (null !== $controller->view()->form) &&
+            ($controller->view()->form instanceof \Pop\Form\Form)) {
+            $formClass  = get_class($controller->view()->form);
+            $modelClass = str_replace('Form', 'Model', $formClass);
+
+            $sql = Table\Fields::sql();
+            $sql->select()->where('models LIKE %' . addslashes($modelClass) . '%')
+                          ->orderBy('order');
+
+            $fields = Table\Fields::query((string)$sql);
+            if ($fields->count() > 0) {
+                foreach ($fields->rows() as $field) {
+                    $attribs = null;
+                    if (!empty($field->attributes)) {
+                        $attribs    = [];
+                        $attributes = explode('" ', $field->attributes);
+                        foreach ($attributes as $attribute) {
+                            $attributeAry = explode('=', trim($attribute));
+                            $att = substr($attributeAry[1], 1);
+                            if (substr($att, -1) == '"') {
+                                $att = substr($att, 0, -1);
+                            }
+                            $attribs[$attributeAry[0]] = $att;
+                        }
+                    }
+                    $controller->view()->form->addFieldConfig('field_' . $field->id, [
+                        'type'       => $field->type,
+                        'label'      => $field->label,
+                        'required'   => (bool)$field->required,
+                        'attributes' => $attribs
+                    ]);
+                }
+            }
+        }
     }
 
     /**

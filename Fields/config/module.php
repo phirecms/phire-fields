@@ -35,6 +35,10 @@ return [
             [
                 'name'   => 'app.route.pre',
                 'action' => 'Fields\Model\Field::models'
+            ],
+            [
+                'name'   => 'app.send',
+                'action' => 'Fields\Model\Field::forms'
             ]
         ],
         'models' => [
