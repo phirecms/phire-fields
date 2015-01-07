@@ -246,7 +246,21 @@ class Field extends AbstractModel
      */
     public static function getFieldValues(\Phire\Controller\AbstractController $controller, \Phire\Application $application)
     {
-
+        if ((!$_POST) && ($controller->hasView()) && (null !== $controller->view()->form) && ((int)$controller->view()->form->id != 0) &&
+            (null !== $controller->view()->form) && ($controller->view()->form instanceof \Pop\Form\Form)) {
+            $fields  = $controller->view()->form->getFields();
+            $modelId = $controller->view()->form->id;
+            foreach ($fields as $key => $value) {
+                if (substr($key, 0, 6) == 'field_') {
+                    $fieldId = substr($key, 6);
+                    $fv      = Table\FieldValues::findById([$fieldId, $modelId]);
+                    if (isset($fv->field_id)) {
+                        $fieldValue = $fv->getColumns();
+                        $controller->view()->form->{$key} = json_decode($fieldValue['value']);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -258,7 +272,50 @@ class Field extends AbstractModel
      */
     public static function saveFieldValues(\Phire\Controller\AbstractController $controller, \Phire\Application $application)
     {
+        if (($_POST) && ($controller->hasView()) && (null !== $controller->view()->id) &&
+            (null !== $controller->view()->form) && ($controller->view()->form instanceof \Pop\Form\Form)) {
+            $fields  = $controller->view()->form->getFields();
+            $modelId = $controller->view()->id;
+            foreach ($fields as $key => $value) {
+                if (substr($key, 0, 6) == 'field_') {
+                    $fieldId = substr($key, 6);
+                    $fv      = Table\FieldValues::findById([$fieldId, $modelId]);
+                    if (isset($fv->field_id)) {
+                        $fv->value     = json_encode($value);
+                        $fv->timestamp = time();
+                    } else {
+                        $fv = new Table\FieldValues([
+                            'field_id'  => $fieldId,
+                            'model_id'  => $modelId,
+                            'value'     => json_encode($value),
+                            'timestamp' => time()
+                        ]);
+                    }
+                    $fv->save();
+                }
+            }
+        }
+    }
 
+    /**
+     * Delete dynamic field values
+     *
+     * @param  \Phire\Controller\AbstractController $controller
+     * @param  \Phire\Application $application
+     * @return void
+     */
+    public static function deleteFieldValues(\Phire\Controller\AbstractController $controller, \Phire\Application $application)
+    {
+        if ($_POST) {
+            foreach ($_POST as $key => $value) {
+                if ((substr($key, 0, 3) == 'rm_') && is_array($value)) {
+                    foreach ($value as $id) {
+                        $fv = new Table\FieldValues();
+                        $fv->delete(['model_id' => (int)$id]);
+                    }
+                }
+            }
+        }
     }
 
     /**

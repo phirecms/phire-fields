@@ -49,28 +49,27 @@ class IndexController extends AbstractController
         $this->prepareView('add.phtml');
         $this->view->title = 'Fields : Add';
 
-        $form = new Form\Field(
+        $this->view->form = new Form\Field(
             $this->application->module('Fields')['models'], [], [],
             $this->application->config()['forms']['Fields\Form\Field']
         );
 
         if ($this->request->isPost()) {
-            $form->addFilter('strip_tags')
+            $this->view->form->addFilter('strip_tags')
                  ->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
                  ->setFieldValues($this->request->getPost());
 
-            if ($form->isValid()) {
-                $form->clearFilters()
+            if ($this->view->form->isValid()) {
+                $this->view->form->clearFilters()
                      ->addFilter('html_entity_decode', [ENT_QUOTES, 'UTF-8'])
                      ->filter();
                 $field = new Model\Field();
-                $field->save($form->getFields());
+                $field->save($this->view->form->getFields());
                 $this->view->id = $field->id;
                 $this->redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
             }
         }
 
-        $this->view->form = $form;
         $this->send();
     }
 
@@ -88,29 +87,28 @@ class IndexController extends AbstractController
         $this->prepareView('edit.phtml');
         $this->view->title = 'Fields : Edit : ' . $field->name;
 
-        $form = new Form\Field(
+        $this->view->form = new Form\Field(
             $this->application->module('Fields')['models'], $field->validators,
             $field->models, $this->application->config()['forms']['Fields\Form\Field']
         );
-        $form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
+        $this->view->form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
              ->setFieldValues($field->toArray());
 
         if ($this->request->isPost()) {
-            $form->addFilter('strip_tags')
+            $this->view->form->addFilter('strip_tags')
                  ->setFieldValues($this->request->getPost());
 
-            if ($form->isValid()) {
-                $form->clearFilters()
+            if ($this->view->form->isValid()) {
+                $this->view->form->clearFilters()
                      ->addFilter('html_entity_decode', [ENT_QUOTES, 'UTF-8'])
                      ->filter();
                 $field = new Model\Field();
-                $field->update($form->getFields());
+                $field->update($this->view->form->getFields());
                 $this->view->id = $field->id;
                 $this->redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
             }
         }
 
-        $this->view->form = $form;
         $this->send();
     }
 

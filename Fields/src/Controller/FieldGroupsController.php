@@ -49,25 +49,24 @@ class FieldGroupsController extends AbstractController
         $this->prepareView('groups/add.phtml');
         $this->view->title = 'Fields : Field Groups : Add';
 
-        $form = new Form\FieldGroup($this->application->config()['forms']['Fields\Form\FieldGroup']);
+        $this->view->form = new Form\FieldGroup($this->application->config()['forms']['Fields\Form\FieldGroup']);
 
         if ($this->request->isPost()) {
-            $form->addFilter('strip_tags')
+            $this->view->form->addFilter('strip_tags')
                  ->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
                  ->setFieldValues($this->request->getPost());
 
-            if ($form->isValid()) {
-                $form->clearFilters()
+            if ($this->view->form->isValid()) {
+                $this->view->form->clearFilters()
                      ->addFilter('html_entity_decode', [ENT_QUOTES, 'UTF-8'])
                      ->filter();
                 $group = new Model\FieldGroup();
-                $group->save($form->getFields());
+                $group->save($this->view->form->getFields());
                 $this->view->id = $group->id;
                 $this->redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id . '?saved=' . time());
             }
         }
 
-        $this->view->form = $form;
         $this->send();
     }
 
@@ -85,26 +84,25 @@ class FieldGroupsController extends AbstractController
         $this->prepareView('groups/edit.phtml');
         $this->view->title = 'Fields : Field Groups : ' . $group->name;
 
-        $form = new Form\FieldGroup($this->application->config()['forms']['Fields\Form\FieldGroup']);
-        $form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
+        $this->view->form = new Form\FieldGroup($this->application->config()['forms']['Fields\Form\FieldGroup']);
+        $this->view->form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
              ->setFieldValues($group->toArray());
 
         if ($this->request->isPost()) {
-            $form->addFilter('strip_tags')
+            $this->view->form->addFilter('strip_tags')
                  ->setFieldValues($this->request->getPost());
 
-            if ($form->isValid()) {
-                $form->clearFilters()
+            if ($this->view->form->isValid()) {
+                $this->view->form->clearFilters()
                      ->addFilter('html_entity_decode', [ENT_QUOTES, 'UTF-8'])
                      ->filter();
                 $group = new Model\FieldGroup();
-                $group->update($form->getFields());
+                $group->update($this->view->form->getFields());
                 $this->view->id = $group->id;
                 $this->redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id . '?saved=' . time());
             }
         }
 
-        $this->view->form = $form;
         $this->send();
     }
 

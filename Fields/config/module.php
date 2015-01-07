@@ -48,11 +48,16 @@ return [
             [
                 'name'   => 'app.send',
                 'action' => 'Fields\Model\Field::saveFieldValues'
+            ],
+            [
+                'name'   => 'app.send',
+                'action' => 'Fields\Model\Field::deleteFieldValues'
             ]
         ],
         'models' => [
             'Phire\Model\User'     => [],
             'Phire\Model\UserRole' => []
-        ]
+        ],
+        'history' => 10
     ]
 ];
