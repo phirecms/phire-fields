@@ -42,7 +42,11 @@ return [
                 'action' => 'Fields\Model\Field::addFields'
             ],
             [
-                'name'   => 'app.dispatch.post',
+                'name'   => 'app.send',
+                'action' => 'Fields\Model\Field::getFieldValues'
+            ],
+            [
+                'name'   => 'app.send',
                 'action' => 'Fields\Model\Field::saveFieldValues'
             ]
         ],

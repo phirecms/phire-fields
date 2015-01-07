@@ -238,12 +238,25 @@ class Field extends AbstractModel
     }
 
     /**
-     * Save dynamic field values
+     * Get dynamic field values
      *
+     * @param  \Phire\Controller\AbstractController $controller
      * @param  \Phire\Application $application
      * @return void
      */
-    public static function saveFieldValues(\Phire\Application $application)
+    public static function getFieldValues(\Phire\Controller\AbstractController $controller, \Phire\Application $application)
+    {
+
+    }
+
+    /**
+     * Save dynamic field values
+     *
+     * @param  \Phire\Controller\AbstractController $controller
+     * @param  \Phire\Application $application
+     * @return void
+     */
+    public static function saveFieldValues(\Phire\Controller\AbstractController $controller, \Phire\Application $application)
     {
 
     }

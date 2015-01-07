@@ -62,7 +62,7 @@ class FieldGroupsController extends AbstractController
                      ->filter();
                 $group = new Model\FieldGroup();
                 $group->save($form->getFields());
-
+                $this->view->id = $group->id;
                 $this->redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id . '?saved=' . time());
             }
         }
@@ -99,7 +99,7 @@ class FieldGroupsController extends AbstractController
                      ->filter();
                 $group = new Model\FieldGroup();
                 $group->update($form->getFields());
-
+                $this->view->id = $group->id;
                 $this->redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id . '?saved=' . time());
             }
         }

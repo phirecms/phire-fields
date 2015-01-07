@@ -65,7 +65,7 @@ class IndexController extends AbstractController
                      ->filter();
                 $field = new Model\Field();
                 $field->save($form->getFields());
-
+                $this->view->id = $field->id;
                 $this->redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
             }
         }
@@ -105,7 +105,7 @@ class IndexController extends AbstractController
                      ->filter();
                 $field = new Model\Field();
                 $field->update($form->getFields());
-
+                $this->view->id = $field->id;
                 $this->redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
             }
         }
