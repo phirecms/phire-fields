@@ -154,7 +154,7 @@ class Field extends AbstractModel
      * @param  \Phire\Application $application
      * @return void
      */
-    public static function models(\Phire\Application $application)
+    public static function addModels(\Phire\Application $application)
     {
         $config = $application->module('Fields');
         $roles  = \Phire\Table\UserRoles::findAll();
@@ -176,7 +176,7 @@ class Field extends AbstractModel
      * @param  \Phire\Application $application
      * @return void
      */
-    public static function forms(\Phire\Application $application)
+    public static function addFields(\Phire\Application $application)
     {
         $forms  = $application->config()['forms'];
         $fields = Table\Fields::findAll();
@@ -235,6 +235,17 @@ class Field extends AbstractModel
         }
 
         $application->mergeConfig(['forms' => $forms]);
+    }
+
+    /**
+     * Save dynamic field values
+     *
+     * @param  \Phire\Application $application
+     * @return void
+     */
+    public static function saveFieldValues(\Phire\Application $application)
+    {
+
     }
 
     /**

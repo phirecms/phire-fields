@@ -35,11 +35,15 @@ return [
         'events' => [
             [
                 'name'   => 'app.route.pre',
-                'action' => 'Fields\Model\Field::models'
+                'action' => 'Fields\Model\Field::addModels'
             ],
             [
                 'name'   => 'app.dispatch.pre',
-                'action' => 'Fields\Model\Field::forms'
+                'action' => 'Fields\Model\Field::addFields'
+            ],
+            [
+                'name'   => 'app.dispatch.post',
+                'action' => 'Fields\Model\Field::saveFieldValues'
             ]
         ],
         'models' => [
