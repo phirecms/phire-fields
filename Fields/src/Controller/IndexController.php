@@ -6,7 +6,6 @@ use Fields\Model;
 use Fields\Form;
 use Fields\Table;
 use Phire\Controller\AbstractController;
-use Pop\Http\Response;
 use Pop\Paginator\Paginator;
 
 class IndexController extends AbstractController
@@ -67,8 +66,7 @@ class IndexController extends AbstractController
                 $field = new Model\Field();
                 $field->save($form->getFields());
 
-                Response::redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
-                exit();
+                $this->redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
             }
         }
 
@@ -108,8 +106,7 @@ class IndexController extends AbstractController
                 $field = new Model\Field();
                 $field->update($form->getFields());
 
-                Response::redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
-                exit();
+                $this->redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id . '?saved=' . time());
             }
         }
 
@@ -128,7 +125,7 @@ class IndexController extends AbstractController
             $field = new Model\Field();
             $field->remove($this->request->getPost());
         }
-        Response::redirect(BASE_PATH . APP_URI . '/fields?removed=' . time());
+        $this->redirect(BASE_PATH . APP_URI . '/fields?removed=' . time());
     }
 
     /**

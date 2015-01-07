@@ -6,7 +6,6 @@ use Fields\Model;
 use Fields\Form;
 use Fields\Table;
 use Phire\Controller\AbstractController;
-use Pop\Http\Response;
 use Pop\Paginator\Paginator;
 
 class FieldGroupsController extends AbstractController
@@ -64,8 +63,7 @@ class FieldGroupsController extends AbstractController
                 $group = new Model\FieldGroup();
                 $group->save($form->getFields());
 
-                Response::redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id . '?saved=' . time());
-                exit();
+                $this->redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id . '?saved=' . time());
             }
         }
 
@@ -102,8 +100,7 @@ class FieldGroupsController extends AbstractController
                 $group = new Model\FieldGroup();
                 $group->update($form->getFields());
 
-                Response::redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id . '?saved=' . time());
-                exit();
+                $this->redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id . '?saved=' . time());
             }
         }
 
@@ -122,7 +119,7 @@ class FieldGroupsController extends AbstractController
             $group = new Model\FieldGroup();
             $group->remove($this->request->getPost());
         }
-        Response::redirect(BASE_PATH . APP_URI . '/fields/groups?removed=' . time());
+        $this->redirect(BASE_PATH . APP_URI . '/fields/groups?removed=' . time());
     }
 
     /**
