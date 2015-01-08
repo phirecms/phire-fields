@@ -58,6 +58,8 @@ return [
             'Phire\Model\User'     => [],
             'Phire\Model\UserRole' => []
         ],
-        'history' => 10
+        'history'       => 10,
+        'max_size'      => 0,
+        'allowed_types' => null
     ]
 ];

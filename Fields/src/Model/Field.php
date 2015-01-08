@@ -2,8 +2,10 @@
 
 namespace Fields\Model;
 
-use Phire\Model\AbstractModel;
 use Fields\Table;
+use Pop\Crypt\Mcrypt;
+use Pop\File\Upload;
+use Phire\Model\AbstractModel;
 
 class Field extends AbstractModel
 {
@@ -179,7 +181,7 @@ class Field extends AbstractModel
     public static function addFields(\Phire\Application $application)
     {
         $forms  = $application->config()['forms'];
-        $fields = Table\Fields::findAll();
+        $fields = Table\Fields::findAll(null, ['order' => 'order']);
 
         if ($fields->count() > 0) {
             foreach ($fields->rows() as $field) {
@@ -216,12 +218,34 @@ class Field extends AbstractModel
                             }
                         }
 
+
+                        if (strpos($field->values, '|')) {
+                            $fValues     = explode('|', $field->values);
+                            $fieldValues = [];
+                            foreach ($fValues as $fv) {
+                                if (strpos($fv, '::')) {
+                                    $fvAry = explode('::', $fv);
+                                    $fieldValues[$fvAry[0]] = $fvAry[1];
+                                } else {
+                                    $fieldValues[$fv] = $fv;
+                                }
+                            }
+                        } else if (strpos($field->values, '::')) {
+                            $fvAry = explode('::', $field->values);
+                            $fieldValues = [$fvAry[0] => $fvAry[1]];
+                        } else {
+                            $fieldValues = $field->values;
+                        }
+
                         $fieldConfig = [
                             'type'       => $field->type,
                             'label'      => $field->label,
                             'required'   => (bool)$field->required,
                             'attributes' => $attribs,
-                            'validators' => $validators
+                            'validators' => $validators,
+                            'value'      => $fieldValues,
+                            'marked'     => (strpos($field->default_values, '|')) ?
+                                explode('|', $field->default_values) : $field->default_values,
                         ];
 
                         if (is_numeric($key)) {
@@ -252,11 +276,27 @@ class Field extends AbstractModel
             $modelId = $controller->view()->form->id;
             foreach ($fields as $key => $value) {
                 if (substr($key, 0, 6) == 'field_') {
-                    $fieldId = substr($key, 6);
-                    $fv      = Table\FieldValues::findById([$fieldId, $modelId]);
-                    if (isset($fv->field_id)) {
-                        $fieldValue = $fv->getColumns();
-                        $controller->view()->form->{$key} = json_decode($fieldValue['value']);
+                    $fieldId = (int)substr($key, 6);
+                    $field   = Table\Fields::findById($fieldId);
+                    if (isset($field->id)) {
+                        $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                        if (isset($fv->field_id)) {
+                            $fieldValue = $fv->getColumns();
+                            $value = json_decode($fieldValue['value']);
+                            if ($field->encrypt) {
+                                $value = (new Mcrypt())->decrypt($value);
+                            }
+                            if ($field->type == 'file') {
+                                $label = $controller->view()->form->getElement($key)->getLabel() .
+                                    ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
+                                    $value . '" target="_blank">' . $value .
+                                    '</a> ] <input type="checkbox" class="rm-field-file" name="rm_field_file_' .
+                                    $field->id . '" value="' . $value . '" /><br /><br />';
+                                $controller->view()->form->getElement($key)->setLabel($label);
+                                $value = null;
+                            }
+                            $controller->view()->form->{$key} = $value;
+                        }
                     }
                 }
             }
@@ -276,22 +316,73 @@ class Field extends AbstractModel
             (null !== $controller->view()->form) && ($controller->view()->form instanceof \Pop\Form\Form)) {
             $fields  = $controller->view()->form->getFields();
             $modelId = $controller->view()->id;
-            foreach ($fields as $key => $value) {
-                if (substr($key, 0, 6) == 'field_') {
-                    $fieldId = substr($key, 6);
+
+            foreach ($_POST as $key => $value) {
+                if (substr($key, 0, 14) == 'rm_field_file_') {
+                    $fieldId = (int)substr($key, (strrpos($key, '_') + 1));
                     $fv      = Table\FieldValues::findById([$fieldId, $modelId]);
                     if (isset($fv->field_id)) {
-                        $fv->value     = json_encode($value);
-                        $fv->timestamp = time();
-                    } else {
-                        $fv = new Table\FieldValues([
-                            'field_id'  => $fieldId,
-                            'model_id'  => $modelId,
-                            'value'     => json_encode($value),
-                            'timestamp' => time()
-                        ]);
+                        $oldFile = json_decode($fv->value);
+                        if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile)) {
+                            unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile);
+                        }
+                        $fv->delete();
                     }
-                    $fv->save();
+                }
+            }
+
+            foreach ($fields as $key => $value) {
+                if (substr($key, 0, 6) == 'field_') {
+                    $fieldId = (int)substr($key, 6);
+                    $field   = Table\Fields::findById($fieldId);
+                    if (isset($field->id)) {
+                        $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+
+                        if (($field->type == 'file') && isset($_FILES[$key]) &&
+                            !empty($_FILES[$key]['tmp_name']) && !empty($_FILES[$key]['name'])) {
+                            if (isset($fv->field_id)) {
+                                $oldFile = json_decode($fv->value);
+                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile)) {
+                                    unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile);
+                                }
+                            }
+                            $value = Upload::checkForDuplicate(
+                                $_FILES[$key]['name'], $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files'
+                            );
+                            Upload::upload(
+                                $_FILES[$key]['tmp_name'],
+                                $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $value,
+                                $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
+                            );
+                        }
+
+                        if (!empty($value)) {
+                            if (($field->encrypt) && !is_array($value)) {
+                                $value = (new Mcrypt())->create($value);
+                            }
+                        }
+
+                        if (isset($fv->field_id)) {
+                            if (!empty($value)) {
+                                $fv->value = json_encode($value);
+                                $fv->timestamp = time();
+                                $fv->save();
+                            } else {
+                                $fv->delete();
+                            }
+                        } else {
+                            if (!empty($value)) {
+                                $fv = new Table\FieldValues([
+                                    'field_id' => $fieldId,
+                                    'model_id' => $modelId,
+                                    'value' => json_encode($value),
+                                    'timestamp' => time()
+                                ]);
+                                $fv->save();
+                            }
+                        }
+
+                    }
                 }
             }
         }

@@ -15,6 +15,7 @@
         <table class="data-table" cellpadding="0" cellspacing="0" border="0">
             <tr>
                 <th><a href="<?=$phireUri . '/fields?sort=id';?>">#</a></th>
+                <th><a href="<?=$phireUri . '/fields?sort=type';?>">Type</a></th>
                 <th><a href="<?=$phireUri . '/fields?sort=name';?>">Name</a></th>
                 <th><a href="<?=$phireUri . '/fields?sort=label';?>">Label</a></th>
                 <th><a href="<?=$phireUri . '/fields?sort=required';?>">Required</a></th>
@@ -26,6 +27,7 @@
 <?php foreach ($fields as $field): ?>
             <tr>
                 <td><?=$field->id; ?></td>
+                <td><?=$field->type; ?></td>
                 <td><?=$field->name; ?></td>
                 <td><?=$field->label; ?></td>
                 <td><?=(($field->required) ? 'Yes' : 'No'); ?></td>
