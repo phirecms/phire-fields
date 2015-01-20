@@ -262,6 +262,58 @@ class Field extends AbstractModel
     }
 
     /**
+     * Get model object with dynamic field values
+     *
+     * @param  string $class
+     * @param  int    $id
+     * @throws \Exception
+     * @return mixed
+     */
+    public static function getModelObject($class, $id)
+    {
+        $model = new $class();
+
+        if (!method_exists($model, 'getById')) {
+            throw new \Exception(
+                'Error: The model class must be an instance of Phire\Model\AbstractModel and have the getById method.'
+            );
+        }
+
+        $model->getById($id);
+
+        if (isset($model->id)) {
+            $model = self::getValues($model);
+        }
+
+        return $model;
+    }
+
+    /**
+     * Get field values for a model object
+     *
+     * @param  mixed $model
+     * @return mixed
+     */
+    public static function getValues($model)
+    {
+        $class = get_class($model);
+        $sql   = Table\Fields::sql();
+        $sql->select()->where('models LIKE %' . addslashes($class) . '%');
+
+        $fields = Table\Fields::query((string)$sql);
+        if (isset($model->id) && ($fields->count() > 0)) {
+            foreach ($fields->rows() as $field) {
+                $fv = Table\FieldValues::findById([$field->id, $model->id]);
+                if (isset($fv->field_id)) {
+                    $model->{$field->name} = json_decode($fv->value);
+                }
+            }
+        }
+
+        return $model;
+    }
+
+    /**
      * Get dynamic field values
      *
      * @param  \Phire\Controller\AbstractController $controller
@@ -346,14 +398,11 @@ class Field extends AbstractModel
                                     unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile);
                                 }
                             }
-                            $value = Upload::checkForDuplicate(
-                                $_FILES[$key]['name'], $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files'
-                            );
-                            Upload::upload(
-                                $_FILES[$key]['tmp_name'],
-                                $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $value,
+                            $upload = new Upload(
+                                $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files',
                                 $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
                             );
+                            $value = basename($upload->upload($_FILES[$key]['tmp_name'], $_FILES[$key]['name']));
                         }
 
                         if (!empty($value)) {
