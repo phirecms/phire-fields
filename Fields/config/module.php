@@ -35,7 +35,7 @@ return [
         'events' => [
             [
                 'name'   => 'app.route.pre',
-                'action' => 'Fields\Model\Field::addModels'
+                'action' => 'Fields\Model\Field::addUserRoles'
             ],
             [
                 'name'   => 'app.dispatch.pre',
@@ -43,15 +43,19 @@ return [
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Model\Field::getFieldValues'
+                'action' => 'Fields\Model\Field::verifyFields'
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Model\Field::saveFieldValues'
+                'action' => 'Fields\Model\FieldValue::getAll'
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Model\Field::deleteFieldValues'
+                'action' => 'Fields\Model\FieldValue::save'
+            ],
+            [
+                'name'   => 'app.send',
+                'action' => 'Fields\Model\FieldValue::delete'
             ]
         ],
         'models' => [
