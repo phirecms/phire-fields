@@ -235,7 +235,8 @@ class Field extends AbstractModel
                         }
 
                         $fieldConfig = [
-                            'type'       => $field->type,
+                            'type'       => ((strpos($field->type, '-history') !== false) ?
+                                substr($field->type, 0, strpos($field->type, '-history')) : strpos($field->type, '-history')),
                             'label'      => $field->label,
                             'required'   => (bool)$field->required,
                             'attributes' => $attribs,

@@ -3,7 +3,8 @@
  */
 
 phire.validatorCount = 1;
-phire.modelCount = 1;
+phire.modelCount     = 1;
+phire.curFieldValue  = null;
 
 phire.toggleEditor = function(sel) {
     if (jax(sel).val().indexOf('textarea') != -1) {
@@ -69,6 +70,46 @@ phire.getModelTypes = function(sel, path, cur) {
                     jax('#model_type_' + cur + '_' + id).append('option', {"value" : json[i].type_field + '|' + json[i].type_value}, json[i].type_name);
                 }
             }
+        }
+    }
+};
+
+phire.changeHistory = function(sel, path) {
+    var ids = sel.id.substring(sel.id.indexOf('_') + 1).split('_');
+    var modelId = ids[0];
+    var fieldId = ids[1];
+    var marked = jax('#' + sel.id + ' > option:selected').val();
+
+    if ((phire.curFieldValue == null) && (jax('#field_' + fieldId)[0] != undefined)) {
+        phire.curFieldValue = jax('#field_' + fieldId).val();
+    }
+
+    if (marked != 0) {
+        var j = jax.json.parse(path + '/fields/json/' + modelId + '/' + fieldId + '/' + marked);
+        if (jax('#field_' + j.fieldId)[0] != undefined) {
+            /*
+            if (typeof CKEDITOR !== 'undefined') {
+                if (CKEDITOR.instances['field_' + j.fieldId] != undefined) {
+                    CKEDITOR.instances['field_' + j.fieldId].setData(j.value);
+                }
+            } else if (typeof tinymce !== 'undefined') {
+                tinymce.activeEditor.setContent(j.value);
+            }
+            */
+            jax('#field_' + j.fieldId).val(j.value);
+        }
+    } else {
+        if (jax('#field_' + fieldId)[0] != undefined) {
+            /*
+            if (typeof CKEDITOR !== 'undefined') {
+                if (CKEDITOR.instances['field_' + fieldId] != undefined) {
+                    CKEDITOR.instances['field_' + fieldId].setData(phire.curValue);
+                }
+            } else if (typeof tinymce !== 'undefined') {
+                tinymce.activeEditor.setContent(phire.curValue);
+            }
+            */
+            jax('#field_' + fieldId).val(phire.curFieldValue);
         }
     }
 };

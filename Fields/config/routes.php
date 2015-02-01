@@ -34,7 +34,7 @@ return [
                 'permission' => 'remove'
             ]
         ],
-        '/fields/json/:model' => [
+        '/fields/json/:model[/:fid][/:marked]' => [
             'controller' => 'Fields\Controller\IndexController',
             'action'     => 'json'
         ],

@@ -41,3 +41,16 @@
     padding: 5px 0 0 0;
 }
 
+.fields-nav-icon {
+    background-image: url(../img/fields-icon-sm.png);
+    background-position: 8px center;
+    background-repeat: no-repeat;
+}
+
+.fields-header {
+    margin: 10px 0 10px 0;
+    padding: 10px 0 10px 40px;
+    background-image: url(../img/fields-icon-lg.png);
+    background-position: left center;
+    background-repeat: no-repeat;
+}

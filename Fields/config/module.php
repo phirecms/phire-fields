@@ -20,6 +20,9 @@ return [
                     'resource'   => 'fields',
                     'permission' => 'index'
                 ],
+                'attributes' => [
+                    'class' => 'fields-nav-icon'
+                ],
                 'children' => [
                     'field-groups' => [
                         'name' => 'Field Groups',

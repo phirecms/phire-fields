@@ -143,6 +143,19 @@ class FieldValue extends AbstractModel
                                 $controller->view()->form->insertElementAfter($key, $rmCheckbox);
                                 $value = null;
                             }
+                            if ((strpos($field->type, '-history') !== false) && (null !== $fv->history)) {
+                                $history    = [0 => 'Current'];
+                                $historyAry = json_decode($fv->history, true);
+                                krsort($historyAry);
+                                foreach ($historyAry as $time => $fieldValue) {
+                                    $history[$time] = date('M j, Y H:i:s', $time);
+                                }
+
+                                $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
+                                $revision->setLabel('Select Revision');
+                                $revision->setAttribute('onchange', 'phire.changeHistory(this, \'' . BASE_PATH . APP_URI . '\');');
+                                $controller->view()->form->insertElementAfter($key, $revision);
+                            }
                             $controller->view()->form->{$key} = $value;
                         }
                     }
@@ -209,7 +222,23 @@ class FieldValue extends AbstractModel
 
                         if (isset($fv->field_id)) {
                             if (!empty($value)) {
-                                $fv->value     = json_encode($value);
+                                if (strpos($field->type, '-history') !== false) {
+                                    $oldValue = json_decode($fv->value, true);
+                                    if ($value != $oldValue) {
+                                        $ts = (null !== $fv->timestamp) ? $fv->timestamp : time() - 180;
+                                        if (null !== $fv->history) {
+                                            $history      = json_decode($fv->history, true);
+                                            $history[$ts] = $oldValue;
+                                            if (count($history) > $application->module('Fields')['history']) {
+                                                $history = array_slice($history, 1, $application->module('Fields')['history'], true);
+                                            }
+                                            $fv->history = json_encode($history);
+                                        } else {
+                                            $fv->history = json_encode([$ts => $oldValue]);
+                                        }
+                                    }
+                                }
+                                $fv->value = json_encode($value);
                                 $fv->timestamp = time();
                                 $fv->save();
                             } else {

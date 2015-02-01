@@ -130,16 +130,40 @@ class IndexController extends AbstractController
      * JSON action method
      *
      * @param  string $model
+     * @param  int    $fid
+     * @param  mixed  $marked
      * @return void
      */
-    public function json($model)
+    public function json($model, $fid = null, $marked = null)
     {
         $json   = [];
-        $model  = rawurldecode($model);
-        $models = $this->application->module('Fields')['models'];
 
-        if (isset($models[$model])) {
-            $json = $models[$model];
+        // Get field history values
+        if ((null !== $fid) && (null !== $marked)) {
+            $value = '';
+            $fv    = Table\FieldValues::findById(array($fid, $model));
+
+            if (isset($fv->field_id) && (null !== $fv->history)) {
+                $history = json_decode($fv->history, true);
+                if (isset($history[$marked])) {
+                    $value = $history[$marked];
+                    $f     = Table\Fields::findById($fid);
+                    if ($f->encrypt) {
+                        $value = (new \Pop\Crypt\Mcrypt())->decrypt($value);
+                    }
+                }
+            }
+            $json['fieldId'] = $fid;
+            $json['modelId'] = $model;
+            $json['value']   = $value;
+        // Get field models
+        } else {
+            $model = rawurldecode($model);
+            $models = $this->application->module('Fields')['models'];
+
+            if (isset($models[$model])) {
+                $json = $models[$model];
+            }
         }
 
         $this->response->setBody(json_encode($json, JSON_PRETTY_PRINT));
