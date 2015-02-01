@@ -10,6 +10,51 @@ use Phire\Model\AbstractModel;
 class FieldValue extends AbstractModel
 {
 
+
+    /**
+     * Get all model objects with dynamic field values
+     *
+     * @param  string $class
+     * @param  array  $params
+     * @throws \Exception
+     * @return mixed
+     */
+    public static function getAllModelObjects($class, array $params = [])
+    {
+        $model = new $class();
+        if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, 'getAll')) {
+            throw new \Exception(
+                'Error: The model class must be an instance of Phire\Model\AbstractModel and have the getAll method.'
+            );
+        }
+
+        $method       = new \ReflectionMethod($class, 'getAll');
+        $methodParams = $method->getParameters();
+        $realParams   = [];
+        foreach ($methodParams as $param) {
+            $realParams[$param->name] = (isset($params[$param->name]) ? $params[$param->name] : null);
+        }
+
+        $rows = call_user_func_array([$model, 'getAll'], $realParams);
+
+        foreach ($rows as $row) {
+            $sql   = Table\Fields::sql();
+            $sql->select()->where('models LIKE %' . addslashes($class) . '%');
+
+            $fields = Table\Fields::query((string)$sql);
+            if (isset($row->id) && ($fields->count() > 0)) {
+                foreach ($fields->rows() as $field) {
+                    $fv = Table\FieldValues::findById([$field->id, $row->id]);
+                    if (isset($fv->field_id)) {
+                        $row->{$field->name} = json_decode($fv->value);
+                    }
+                }
+            }
+        }
+
+        return $rows;
+    }
+
     /**
      * Get model object with dynamic field values
      *
@@ -18,7 +63,7 @@ class FieldValue extends AbstractModel
      * @throws \Exception
      * @return mixed
      */
-    public static function getModelObject($class, $id)
+    public static function getModelObjectById($class, $id)
     {
         $model = new $class();
 
@@ -90,10 +135,12 @@ class FieldValue extends AbstractModel
                             if ($field->type == 'file') {
                                 $label = $controller->view()->form->getElement($key)->getLabel() .
                                     ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
-                                    $value . '" target="_blank">' . $value .
-                                    '</a> ] <input type="checkbox" class="rm-field-file" name="rm_field_file_' .
-                                    $field->id . '" value="' . $value . '" /><br /><br />';
+                                    $value . '" target="_blank">' . $value . '</a> ]';
                                 $controller->view()->form->getElement($key)->setLabel($label);
+                                $rmCheckbox = new \Pop\Form\Element\Input\Checkbox(
+                                    'rm_field_file_' . $field->id, [$value => 'Remove?']
+                                );
+                                $controller->view()->form->insertElementAfter($key, $rmCheckbox);
                                 $value = null;
                             }
                             $controller->view()->form->{$key} = $value;
@@ -151,7 +198,7 @@ class FieldValue extends AbstractModel
                                 $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files',
                                 $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
                             );
-                            $value = basename($upload->upload($_FILES[$key]['tmp_name'], $_FILES[$key]['name']));
+                            $value = $upload->upload($_FILES[$key]['tmp_name'], $_FILES[$key]['name']);
                         }
 
                         if (!empty($value)) {

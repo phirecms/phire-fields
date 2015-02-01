@@ -245,10 +245,34 @@ class Field extends AbstractModel
                                 explode('|', $field->default_values) : $field->default_values,
                         ];
 
-                        if (is_numeric($key)) {
-                            $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
-                        } else {
-                            $forms[$form]['field_' . $field->id] = $fieldConfig;
+                        $allowed = true;
+
+                        // Determine if there is a model type restraint on the field
+                        if (!empty($model['type_field']) && !empty($model['type_value']) &&
+                            (count($application->router()->getRouteMatch()->getDispatchParams()) > 0)) {
+                            $params = $application->router()->getRouteMatch()->getDispatchParams();
+                            reset($params);
+                            $id = $params[key($params)];
+                            if (substr($application->router()->getRouteMatch()->getRoute(), -4) == 'edit') {
+                                $modelClass  = $model['model'];
+                                $modelType   = $model['type_field'];
+                                $modelObject = new $modelClass();
+                                if (method_exists($modelObject, 'getById')) {
+                                    $modelObject->getById($id);
+                                    $allowed = (isset($modelObject->{$modelType}) &&
+                                        ($modelObject->{$modelType} == $model['type_value']));
+                                }
+                            } else if (substr($application->router()->getRouteMatch()->getRoute(), -3) == 'add') {
+                                $allowed = ($model['type_value'] == $id);
+                            }
+                        }
+
+                        if ($allowed) {
+                            if (is_numeric($key)) {
+                                $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
+                            } else {
+                                $forms[$form]['field_' . $field->id] = $fieldConfig;
+                            }
                         }
                     }
                 }
@@ -256,19 +280,6 @@ class Field extends AbstractModel
         }
 
         $application->mergeConfig(['forms' => $forms]);
-    }
-
-    /**
-     * Verify dynamic fields added to forms
-     *
-     * @param  \Phire\Controller\AbstractController $controller
-     * @return void
-     */
-    public static function verifyFields(\Phire\Controller\AbstractController $controller)
-    {
-        if (($controller->hasView()) && (null !== $controller->view()->form) && ($controller->view()->form instanceof \Pop\Form\Form)) {
-            //$controller->view()->form->removeElement('field_11001');
-        }
     }
 
     /**

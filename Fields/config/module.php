@@ -43,10 +43,6 @@ return [
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Model\Field::verifyFields'
-            ],
-            [
-                'name'   => 'app.send',
                 'action' => 'Fields\Model\FieldValue::getAll'
             ],
             [

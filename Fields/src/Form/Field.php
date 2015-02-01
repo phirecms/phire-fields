@@ -90,21 +90,23 @@ class Field extends Form
             'label'      => '<a href="#" onclick="phire.addValidator(); return false;">[+]</a> Field Validators',
             'value'      => $this->validators,
             'attributes' => [
-                'style' => 'display: block; padding: 4px 4px 5px 4px; margin: 0 0 4px 0; height: 28px; min-width: 200px;'
+                'style' => 'display: block; padding: 4px 4px 5px 4px; margin: 0 0 4px 0; height: 28px;'
             ]
         ];
         $fields[1]['validator_value_new_1'] = [
             'type'       => 'text',
             'attributes' => [
-                'size'  => 20,
-                'style' => 'display: block; padding: 4px 4px 5px 4px; margin: 0 0 4px 0; height: 17px; min-width: 168px;'
+                'size'        => 20,
+                'style'       => 'display: block; padding: 4px 4px 5px 4px; margin: 0 0 4px 0; height: 17px; min-width: 168px;',
+                'placeholder' => 'Value'
             ]
         ];
         $fields[1]['validator_message_new_1'] = [
             'type'       => 'text',
             'attributes' => [
-                'size'  => 40,
-                'style' => 'display: block; padding: 4px 4px 5px 4px; margin: 0 0 4px 0; height: 17px;'
+                'size'        => 40,
+                'style'       => 'display: block; padding: 4px 4px 5px 4px; margin: 0 0 4px 0; height: 17px;',
+                'placeholder' => 'Message'
             ]
         ];
 
