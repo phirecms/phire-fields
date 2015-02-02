@@ -41,6 +41,12 @@
     padding: 5px 0 0 0;
 }
 
+.editor-link-span {
+    margin: 0;
+    padding: 0 0 0 5px;
+    font-size: 0.825em;
+}
+
 .fields-nav-icon {
     background-image: url(../img/fields-icon-sm.png);
     background-position: 8px center;

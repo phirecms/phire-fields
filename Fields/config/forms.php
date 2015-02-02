@@ -66,7 +66,7 @@ return [
             ],
             'editor' => [
                 'type'       => 'select',
-                'value'      => null,
+                'value'      => ['source' => 'Source'],
                 'marked'     => 'source',
                 'attributes' => [
                     'style' => 'display: none;'

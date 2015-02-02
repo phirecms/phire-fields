@@ -72,7 +72,8 @@ class Field extends AbstractModel
             'encrypt'        => (!empty($fields['encrypt'])) ? (int)$fields['encrypt'] : 0,
             'order'          => (!empty($fields['order'])) ? (int)$fields['order'] : 0,
             'required'       => (!empty($fields['required'])) ? (int)$fields['required'] : 0,
-            'editor'         => (!empty($fields['editor'])) ? $fields['editor'] : null,
+            'editor'         => (!empty($fields['editor']) && (strpos($fields['type'], 'textarea') !== false)) ?
+                $fields['editor'] : null,
             'models'         => serialize($this->getModels())
         ]);
         $field->save();
@@ -101,7 +102,8 @@ class Field extends AbstractModel
             $field->encrypt        = (!empty($fields['encrypt'])) ? (int)$fields['encrypt'] : 0;
             $field->order          = (!empty($fields['order'])) ? (int)$fields['order'] : 0;
             $field->required       = (!empty($fields['required'])) ? (int)$fields['required'] : 0;
-            $field->editor         = (!empty($fields['editor'])) ? $fields['editor'] : null;
+            $field->editor         = (!empty($fields['editor']) && (strpos($fields['type'], 'textarea') !== false)) ?
+                $fields['editor'] : null;
             $field->models         = serialize($this->getModels());
             $field->save();
 
@@ -234,10 +236,15 @@ class Field extends AbstractModel
                             $fieldValues = $field->values;
                         }
 
+                        $label = ((null !== $field->editor) && ($field->editor != 'source')) ?
+                            $label = $field->label . ' <span class="editor-link-span">[ <a class="editor-link" data-editor="' .
+                                $field->editor . '" data-fid="' . $field->id . '" data-path="' . BASE_PATH . CONTENT_PATH . '" href="#">Source</a> ]</span>' :
+                            $field->label;
+
                         $fieldConfig = [
                             'type'       => ((strpos($field->type, '-history') !== false) ?
-                                substr($field->type, 0, strpos($field->type, '-history')) : strpos($field->type, '-history')),
-                            'label'      => $field->label,
+                                substr($field->type, 0, strpos($field->type, '-history')) : $field->type),
+                            'label'      => $label,
                             'required'   => (bool)$field->required,
                             'attributes' => $attribs,
                             'validators' => $validators,

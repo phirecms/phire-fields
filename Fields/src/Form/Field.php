@@ -63,12 +63,11 @@ class Field extends Form
         array $models, array $validators = [], array $fieldModels = [], array $fields = null, $action = null, $method = 'post'
     )
     {
-        $editors = ['source' => 'Source'];
         if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
-            $editors['ckeditor'] = 'CKEditor';
+            $fields[1]['editor']['value']['ckeditor'] = 'CKEditor';
         }
         if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/tinymce')) {
-            $editors['tinymce'] = 'TinyMCE';
+            $fields[1]['editor']['value']['tinymce'] = 'TinyMCE';
         }
 
         $groupValues = ['----' => '----'];
@@ -84,7 +83,6 @@ class Field extends Form
         }
 
         $fields[0]['group_id']['value'] = $groupValues;
-        $fields[1]['editor']['value']   = $editors;
         $fields[1]['validator_new_1']   = [
             'type'       => 'select',
             'label'      => '<a href="#" onclick="phire.addValidator(); return false;">[+]</a> Field Validators',

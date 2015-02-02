@@ -84,12 +84,18 @@ class IndexController extends AbstractController
         $field = new Model\Field();
         $field->getById($id);
 
+        $fields = $this->application->config()['forms']['Fields\Form\Field'];
+
+        if ($field->editor != 'source') {
+            $fields[1]['editor']['attributes']['style'] = 'display: block;';
+        }
+
         $this->prepareView('edit.phtml');
         $this->view->title = 'Fields : Edit : ' . $field->name;
 
         $this->view->form = new Form\Field(
             $this->application->module('Fields')['models'], $field->validators,
-            $field->models, $this->application->config()['forms']['Fields\Form\Field']
+            $field->models, $fields
         );
         $this->view->form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
              ->setFieldValues($field->toArray());

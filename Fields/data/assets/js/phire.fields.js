@@ -5,6 +5,7 @@
 phire.validatorCount = 1;
 phire.modelCount     = 1;
 phire.curFieldValue  = null;
+phire.editorIds      = [];
 
 phire.toggleEditor = function(sel) {
     if (jax(sel).val().indexOf('textarea') != -1) {
@@ -114,6 +115,53 @@ phire.changeHistory = function(sel, path) {
     }
 };
 
+phire.loadEditor = function(editor, id) {
+    if (null != id) {
+        var w = Math.round(jax('#field_' + id).width());
+        var h = Math.round(jax('#field_' + id).height());
+        phire.editorIds = [{ "id" : id, "width" : w, "height" : h }];
+    }
+
+    if (phire.editorIds.length > 0) {
+        for (var i = 0; i < phire.editorIds.length; i++) {
+            if (editor == 'ckeditor') {
+                if (CKEDITOR.instances['field_' + phire.editorIds[i].id] == undefined) {
+                    CKEDITOR.replace(
+                        'field_' + phire.editorIds[i].id,
+                        {
+                            width          : phire.editorIds[i].width,
+                            height         : phire.editorIds[i].height,
+                            allowedContent : true
+                        }
+                    );
+                }
+            } else if (editor == 'tinymce') {
+                if (tinymce.editors['field_' + phire.editorIds[i].id] == undefined) {
+                    tinymce.init(
+                        {
+                            selector              : "textarea#field_" + phire.editorIds[i].id,
+                            theme                 : "modern",
+                            plugins: [
+                                "advlist autolink lists link image hr", "searchreplace wordcount code fullscreen",
+                                "table", "template paste textcolor"
+                            ],
+                            image_advtab          : true,
+                            toolbar1              : "insertfile undo redo | styleselect | forecolor backcolor | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | link image",
+                            width                 : phire.editorIds[i].width,
+                            height                : phire.editorIds[i].height,
+                            relative_urls         : false,
+                            convert_urls          : 0,
+                            remove_script_host    : 0
+                        }
+                    );
+                } else {
+                    tinymce.get('field_' + phire.editorIds[i].id).show();
+                }
+            }
+        }
+    }
+};
+
 jax(document).ready(function(){
     if (jax('#fields-form')[0] != undefined) {
         jax('#checkall').click(function(){
@@ -138,5 +186,44 @@ jax(document).ready(function(){
         jax('#field-groups-form').submit(function(){
             return jax('#field-groups-form').checkValidate('checkbox', true);
         });
+    }
+
+    var editorLinks = jax('a.editor-link').toArray();
+    if ((editorLinks != '') && (editorLinks.length > 0)) {
+        var editor = jax(editorLinks[0]).data('editor');
+        var path   = jax(editorLinks[0]).data('path');
+
+        for (var i = 0; i < editorLinks.length; i++) {
+            var id = jax(editorLinks[i]).data('fid');
+            var w = Math.round(jax('#field_' + id).width());
+            var h = Math.round(jax('#field_' + id).height());
+            phire.editorIds.push({ "id" : id, "width" : w, "height" : h });
+        }
+
+        if (editor != null) {
+            var head   = document.getElementsByTagName('head')[0];
+            var script = document.createElement("script");
+            switch (editor) {
+                case 'ckeditor':
+                    script.src    = path + '/modules/phire/assets/js/ckeditor/ckeditor.js';
+                    script.onload = script.onreadystatechange = function() {
+                        if (typeof CKEDITOR != 'undefined') {
+                            phire.loadEditor('ckeditor');
+                        }
+                    };
+                    head.appendChild(script);
+                    break;
+
+                case 'tinymce':
+                    script.src    = path + '/modules/phire/assets/js/tinymce/tinymce.min.js';
+                    script.onload = script.onreadystatechange = function() {
+                        if (typeof tinymce != 'undefined') {
+                            phire.loadEditor('tinymce');
+                        }
+                    };
+                    head.appendChild(script);
+                    break;
+            }
+        }
     }
 });
