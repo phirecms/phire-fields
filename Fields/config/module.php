@@ -37,8 +37,9 @@ return [
         ],
         'events' => [
             [
-                'name'   => 'app.route.pre',
-                'action' => 'Fields\Model\Field::addUserRoles'
+                'name'     => 'app.route.pre',
+                'action'   => 'Fields\Model\Field::addModels',
+                'priority' => 0
             ],
             [
                 'name'   => 'app.dispatch.pre',

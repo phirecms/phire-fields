@@ -156,20 +156,27 @@ class Field extends AbstractModel
      * @param  \Phire\Application $application
      * @return void
      */
-    public static function addUserRoles(\Phire\Application $application)
+    public static function addModels(\Phire\Application $application)
     {
-        $config = $application->module('Fields');
-        $roles  = \Phire\Table\UserRoles::findAll();
+        $modules = $application->modules();
+        $roles   = \Phire\Table\UserRoles::findAll();
         foreach ($roles->rows() as $role) {
-            if (isset($config['models']) && isset($config['models']['Phire\Model\User'])) {
-                $config['models']['Phire\Model\User'][] = [
+            if (isset($modules['Fields']) && isset($modules['Fields']['models']) && isset($modules['Fields']['models']['Phire\Model\User'])) {
+                $modules['Fields']['models']['Phire\Model\User'][] = [
                     'type_field' => 'role_id',
                     'type_value' => $role->id,
                     'type_name'  => $role->name
                 ];
             }
         }
-        $application->mergeModuleConfig('Fields', $config);
+
+        foreach ($modules as $module => $config) {
+            if (($module != 'Fields') && isset($config['models'])) {
+                $modules['Fields']['models'] = array_merge($config['models'], $modules['Fields']['models']);
+            }
+        }
+
+        $application->mergeModuleConfig('Fields', $modules['Fields']);
     }
 
     /**
