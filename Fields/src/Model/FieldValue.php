@@ -92,9 +92,9 @@ class FieldValue extends AbstractModel
     {
         $class = get_class($model);
         $sql   = Table\Fields::sql();
-        $sql->select()->where('models LIKE %' . addslashes($class) . '%');
+        $sql->select()->where('models LIKE :models');
 
-        $fields = Table\Fields::query((string)$sql);
+        $fields = Table\Fields::execute((string)$sql, ['models' => '%' . $class . '%']);
         if (isset($model->id) && ($fields->count() > 0)) {
             foreach ($fields->rows() as $field) {
                 $fv = Table\FieldValues::findById([$field->id, $model->id]);

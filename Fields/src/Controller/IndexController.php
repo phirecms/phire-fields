@@ -86,7 +86,7 @@ class IndexController extends AbstractController
 
         $fields = $this->application->config()['forms']['Fields\Form\Field'];
 
-        if ($field->editor != 'source') {
+        if ((null !== $field->editor) && ($field->editor != 'source')) {
             $fields[1]['editor']['attributes']['style'] = 'display: block;';
         }
 

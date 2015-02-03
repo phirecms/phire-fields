@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `[{prefix}]fields` (
   `encrypt` int(1) NOT NULL,
   `order` int(16) NOT NULL,
   `required` int(1) NOT NULL,
+  `placement` varchar(255),
   `editor` varchar(255),
   `models` text,
   PRIMARY KEY (`id`),

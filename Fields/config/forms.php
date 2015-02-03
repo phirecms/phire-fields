@@ -10,6 +10,14 @@ return [
                     'class'  => 'save-btn wide'
                 ]
             ],
+            'placement' => [
+                'type'  => 'select',
+                'label' => 'Field Placement',
+                'value' => [
+                    'append'  => 'Append',
+                    'prepend' => 'Prepend'
+                ]
+            ],
             'group_id' => [
                 'type'  => 'select',
                 'label' => 'Field Group',
@@ -51,9 +59,9 @@ return [
                 'required' => true,
                 'value'    => [
                     'text'             => 'text',
-                    'text-history'     => 'text-history',
                     'textarea'         => 'textarea',
                     'textarea-history' => 'textarea-history',
+                    'email'            => 'email',
                     'select'           => 'select',
                     'checkbox'         => 'checkbox',
                     'radio'            => 'radio',

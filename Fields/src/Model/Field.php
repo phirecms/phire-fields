@@ -72,6 +72,7 @@ class Field extends AbstractModel
             'encrypt'        => (!empty($fields['encrypt'])) ? (int)$fields['encrypt'] : 0,
             'order'          => (!empty($fields['order'])) ? (int)$fields['order'] : 0,
             'required'       => (!empty($fields['required'])) ? (int)$fields['required'] : 0,
+            'placement'      => $fields['placement'],
             'editor'         => (!empty($fields['editor']) && (strpos($fields['type'], 'textarea') !== false)) ?
                 $fields['editor'] : null,
             'models'         => serialize($this->getModels())
@@ -102,6 +103,7 @@ class Field extends AbstractModel
             $field->encrypt        = (!empty($fields['encrypt'])) ? (int)$fields['encrypt'] : 0;
             $field->order          = (!empty($fields['order'])) ? (int)$fields['order'] : 0;
             $field->required       = (!empty($fields['required'])) ? (int)$fields['required'] : 0;
+            $field->placement      = $fields['placement'];
             $field->editor         = (!empty($fields['editor']) && (strpos($fields['type'], 'textarea') !== false)) ?
                 $fields['editor'] : null;
             $field->models         = serialize($this->getModels());
@@ -284,9 +286,17 @@ class Field extends AbstractModel
 
                         if ($allowed) {
                             if (is_numeric($key)) {
-                                $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
+                                if ($field->placement == 'prepend') {
+                                    $forms[$form][$key] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form][$key]);
+                                } else {
+                                    $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
+                                }
                             } else {
-                                $forms[$form]['field_' . $field->id] = $fieldConfig;
+                                if ($field->placement == 'prepend') {
+                                    $forms[$form] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form]);
+                                } else {
+                                    $forms[$form]['field_' . $field->id] = $fieldConfig;
+                                }
                             }
                         }
                     }
@@ -294,7 +304,7 @@ class Field extends AbstractModel
             }
         }
 
-        $application->mergeConfig(['forms' => $forms]);
+        $application->mergeConfig(['forms' => $forms], true);
     }
 
     /**
