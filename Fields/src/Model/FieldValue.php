@@ -41,7 +41,9 @@ class FieldValue extends AbstractModel
             $sql   = Table\Fields::sql();
             $sql->select()->where('models LIKE :models');
 
-            $fields = Table\Fields::execute((string)$sql, ['models' => '%' . addslashes($class) .'%']);
+            $value = ($sql->getDbType() == \Pop\Db\Sql::SQLITE) ? '%' . $class . '%' : '%' . addslashes($class) . '%';
+
+            $fields = Table\Fields::execute((string)$sql, ['models' => $value]);
             if (isset($row->id) && ($fields->count() > 0)) {
                 foreach ($fields->rows() as $field) {
                     $fv = Table\FieldValues::findById([$field->id, $row->id]);
@@ -94,7 +96,9 @@ class FieldValue extends AbstractModel
         $sql   = Table\Fields::sql();
         $sql->select()->where('models LIKE :models');
 
-        $fields = Table\Fields::execute((string)$sql, ['models' => '%' . addslashes($class) . '%']);
+        $value = ($sql->getDbType() == \Pop\Db\Sql::SQLITE) ? '%' . $class . '%' : '%' . addslashes($class) . '%';
+
+        $fields = Table\Fields::execute((string)$sql, ['models' => $value]);
 
         if (isset($model->id) && ($fields->count() > 0)) {
             foreach ($fields->rows() as $field) {
