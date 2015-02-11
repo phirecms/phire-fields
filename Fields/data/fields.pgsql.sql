@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]field_groups" (
   "id" integer NOT NULL DEFAULT nextval('field_group_id_seq'),
   "name" varchar(255),
   "order" integer,
-  "dynamic" integer,
+  "prepend" integer NOT NULL,
+  "dynamic" integer NOT NULL,
   PRIMARY KEY ("id")
 ) ;
 
@@ -43,7 +44,7 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
   "encrypt" integer NOT NULL,
   "order" integer NOT NULL,
   "required" integer NOT NULL,
-  "placement" varchar(255),
+  "prepend" integer NOT NULL,
   "editor" varchar(255),
   "models" text,
   PRIMARY KEY ("id"),

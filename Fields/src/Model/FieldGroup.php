@@ -49,6 +49,7 @@ class FieldGroup extends AbstractModel
             $this->data['id']      = $group->id;
             $this->data['name']    = $group->name;
             $this->data['order']   = $group->order;
+            $this->data['prepend'] = $group->prepend;
             $this->data['dynamic'] = $group->dynamic;
         }
     }
@@ -64,6 +65,7 @@ class FieldGroup extends AbstractModel
         $group = new Table\FieldGroups([
             'name'    => $fields['name'],
             'order'   => (int)$fields['order'],
+            'prepend' => (int)$fields['prepend'],
             'dynamic' => (int)$fields['dynamic']
         ]);
         $group->save();
@@ -83,6 +85,7 @@ class FieldGroup extends AbstractModel
         if (isset($group->id)) {
             $group->name    = $fields['name'];
             $group->order   = (int)$fields['order'];
+            $group->prepend = (int)$fields['prepend'];
             $group->dynamic = (int)$fields['dynamic'];
             $group->save();
 

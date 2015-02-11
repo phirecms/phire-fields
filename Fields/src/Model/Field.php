@@ -72,7 +72,7 @@ class Field extends AbstractModel
             'encrypt'        => (!empty($fields['encrypt'])) ? (int)$fields['encrypt'] : 0,
             'order'          => (!empty($fields['order'])) ? (int)$fields['order'] : 0,
             'required'       => (!empty($fields['required'])) ? (int)$fields['required'] : 0,
-            'placement'      => $fields['placement'],
+            'prepend'        => (int)$fields['prepend'],
             'editor'         => (!empty($fields['editor']) && (strpos($fields['type'], 'textarea') !== false)) ?
                 $fields['editor'] : null,
             'models'         => serialize($this->getModels())
@@ -103,7 +103,7 @@ class Field extends AbstractModel
             $field->encrypt        = (!empty($fields['encrypt'])) ? (int)$fields['encrypt'] : 0;
             $field->order          = (!empty($fields['order'])) ? (int)$fields['order'] : 0;
             $field->required       = (!empty($fields['required'])) ? (int)$fields['required'] : 0;
-            $field->placement      = $fields['placement'];
+            $field->prepend        = (int)$fields['prepend'];
             $field->editor         = (!empty($fields['editor']) && (strpos($fields['type'], 'textarea') !== false)) ?
                 $fields['editor'] : null;
             $field->models         = serialize($this->getModels());
@@ -163,7 +163,8 @@ class Field extends AbstractModel
         $modules = $application->modules();
         $roles   = \Phire\Table\UserRoles::findAll();
         foreach ($roles->rows() as $role) {
-            if (isset($modules['Fields']) && isset($modules['Fields']['models']) && isset($modules['Fields']['models']['Phire\Model\User'])) {
+            if (isset($modules['Fields']) && isset($modules['Fields']['models']) &&
+                isset($modules['Fields']['models']['Phire\Model\User'])) {
                 $modules['Fields']['models']['Phire\Model\User'][] = [
                     'type_field' => 'role_id',
                     'type_value' => $role->id,
@@ -189,10 +190,25 @@ class Field extends AbstractModel
      */
     public static function addFields(\Phire\Application $application)
     {
-        $forms  = $application->config()['forms'];
-        $fields = Table\Fields::findAll(null, ['order' => 'order']);
+        $forms       = $application->config()['forms'];
+        $fieldGroups = [];
+        $groups      = Table\FieldGroups::findAll(null, ['order' => 'order']);
+        $fields      = Table\Fields::findBy(['group_id' => null], null, ['order' => 'order']);
 
         if ($fields->count() > 0) {
+            $fieldGroups[] = $fields;
+        }
+        if ($groups->count() > 0) {
+            foreach ($groups->rows() as $group) {
+                $fields = Table\Fields::findBy(['group_id' => $group->id], null, ['order' => 'order']);
+                if ($fields->count() > 0) {
+                    $fieldGroups[] = $fields;
+                }
+            }
+        }
+
+        foreach ($fieldGroups as $fields) {
+            $group = [];
             foreach ($fields->rows() as $field) {
                 $field->validators = unserialize($field->validators);
                 $field->models     = unserialize($field->models);
@@ -286,13 +302,13 @@ class Field extends AbstractModel
 
                         if ($allowed) {
                             if (is_numeric($key)) {
-                                if ($field->placement == 'prepend') {
+                                if ($field->prepend) {
                                     $forms[$form][$key] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form][$key]);
                                 } else {
                                     $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
                                 }
                             } else {
-                                if ($field->placement == 'prepend') {
+                                if ($field->prepend) {
                                     $forms[$form] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form]);
                                 } else {
                                     $forms[$form]['field_' . $field->id] = $fieldConfig;

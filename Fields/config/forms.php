@@ -10,12 +10,12 @@ return [
                     'class'  => 'save-btn wide'
                 ]
             ],
-            'placement' => [
+            'prepend' => [
                 'type'  => 'select',
                 'label' => 'Field Placement',
                 'value' => [
-                    'append'  => 'Append',
-                    'prepend' => 'Prepend'
+                    '0' => 'Append',
+                    '1' => 'Prepend'
                 ]
             ],
             'group_id' => [
@@ -117,11 +117,13 @@ return [
                     'class'  => 'save-btn wide'
                 ]
             ],
-            'order' => [
-                'type'       => 'text',
-                'label'      => 'Order',
-                'attributes' => ['size' => 3],
-                'value'      => 0
+            'prepend' => [
+                'type'  => 'select',
+                'label' => 'Group Placement',
+                'value' => [
+                    '0' => 'Append',
+                    '1' => 'Prepend'
+                ]
             ],
             'dynamic' => [
                 'type'  => 'radio',
@@ -131,6 +133,12 @@ return [
                     '0' => 'No'
                 ],
                 'marked' => 0
+            ],
+            'order' => [
+                'type'       => 'text',
+                'label'      => 'Order',
+                'attributes' => ['size' => 3],
+                'value'      => 0
             ],
             'id' => [
                 'type'  => 'hidden',

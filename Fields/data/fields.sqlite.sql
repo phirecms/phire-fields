@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]field_groups" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "name" varchar,
   "order" integer,
-  "dynamic" integer,
+  "prepend" integer NOT NULL,
+  "dynamic" integer NOT NULL,
   UNIQUE ("id")
 ) ;
 
@@ -48,7 +49,7 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
   "encrypt" integer NOT NULL,
   "order" integer NOT NULL,
   "required" integer NOT NULL,
-  "placement" varchar,
+  "prepend" integer NOT NULL,
   "editor" varchar,
   "models" text,
   UNIQUE ("id"),

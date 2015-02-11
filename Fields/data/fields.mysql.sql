@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS `[{prefix}]field_groups` (
   `id` int(16) NOT NULL AUTO_INCREMENT,
   `name` varchar(255),
   `order` int(16),
-  `dynamic` int(1),
+  `prepend` int(1) NOT NULL,
+  `dynamic` int(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `field_group_name` (`name`),
   INDEX `field_group_order` (`order`)
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `[{prefix}]fields` (
   `encrypt` int(1) NOT NULL,
   `order` int(16) NOT NULL,
   `required` int(1) NOT NULL,
-  `placement` varchar(255),
+  `prepend` int(1) NOT NULL,
   `editor` varchar(255),
   `models` text,
   PRIMARY KEY (`id`),

@@ -37,7 +37,7 @@ return [
         ],
         'events' => [
             [
-                'name'     => 'app.route.pre',
+                'name'     => 'app.route.post',
                 'action'   => 'Fields\Model\Field::addModels',
                 'priority' => 0
             ],
