@@ -190,134 +190,100 @@ class Field extends AbstractModel
      */
     public static function addFields(\Phire\Application $application)
     {
-        $forms       = $application->config()['forms'];
-        $fieldGroups = [];
-        $groups      = Table\FieldGroups::findAll(null, ['order' => 'order']);
-        $fields      = Table\Fields::findBy(['group_id' => null], null, ['order' => 'order']);
+        $forms  = $application->config()['forms'];
+        $fields = Table\Fields::findBy(['group_id' => null], null, ['order' => 'order']);
+        $groups = Table\FieldGroups::findAll(null, ['order' => 'order']);
 
         if ($fields->count() > 0) {
-            $fieldGroups[] = $fields;
-        }
-        if ($groups->count() > 0) {
-            foreach ($groups->rows() as $group) {
-                $fields = Table\Fields::findBy(['group_id' => $group->id], null, ['order' => 'order']);
-                if ($fields->count() > 0) {
-                    $fieldGroups[] = $fields;
-                }
-            }
-        }
-
-        foreach ($fieldGroups as $fields) {
-            $group = [];
             foreach ($fields->rows() as $field) {
                 $field->validators = unserialize($field->validators);
                 $field->models     = unserialize($field->models);
                 foreach ($field->models as $model) {
                     $form = str_replace('Model', 'Form', $model['model']);
-                    if (isset($forms[$form])) {
+                    if (isset($forms[$form]) && (self::isAllowed($model, $application))) {
                         end($forms[$form]);
                         $key = key($forms[$form]);
                         reset($forms[$form]);
 
-                        $attribs = null;
-                        if (!empty($field->attributes)) {
-                            $attribs    = [];
-                            $attributes = explode('" ', $field->attributes);
-                            foreach ($attributes as $attribute) {
-                                $attributeAry = explode('=', trim($attribute));
-                                $att = substr($attributeAry[1], 1);
-                                if (substr($att, -1) == '"') {
-                                    $att = substr($att, 0, -1);
-                                }
-                                $attribs[$attributeAry[0]] = $att;
-                            }
-                        }
+                        $fieldConfig = self::createFieldConfig($field);
 
-                        $validators = [];
-                        if (is_array($field->validators) && (count($field->validators) > 0)) {
-                            foreach ($field->validators as $validator) {
-                                $class   = 'Pop\Validator\\' . $validator['validator'];
-                                $value   = (!empty($validator['value']))   ? $validator['value']   : null;
-                                $message = (!empty($validator['message'])) ? $validator['message'] : null;
-                                $validators[] = new $class($value, $message);
-                            }
-                        }
-
-                        if (strpos($field->values, '|')) {
-                            $fValues     = explode('|', $field->values);
-                            $fieldValues = [];
-                            foreach ($fValues as $fv) {
-                                if (strpos($fv, '::')) {
-                                    $fvAry = explode('::', $fv);
-                                    $fieldValues[$fvAry[0]] = $fvAry[1];
-                                } else {
-                                    $fieldValues[$fv] = $fv;
-                                }
-                            }
-                        } else if (strpos($field->values, '::')) {
-                            $fvAry = explode('::', $field->values);
-                            $fieldValues = [$fvAry[0] => $fvAry[1]];
-                        } else {
-                            $fieldValues = $field->values;
-                        }
-
-                        $label = ((null !== $field->editor) && ($field->editor != 'source')) ?
-                            $label = $field->label . ' <span class="editor-link-span">[ <a class="editor-link" data-editor="' .
-                                $field->editor . '" data-fid="' . $field->id . '" data-path="' . BASE_PATH . CONTENT_PATH . '" href="#">Source</a> ]</span>' :
-                            $field->label;
-
-                        $fieldConfig = [
-                            'type'       => ((strpos($field->type, '-history') !== false) ?
-                                substr($field->type, 0, strpos($field->type, '-history')) : $field->type),
-                            'label'      => $label,
-                            'required'   => (bool)$field->required,
-                            'attributes' => $attribs,
-                            'validators' => $validators,
-                            'value'      => $fieldValues,
-                            'marked'     => (strpos($field->default_values, '|')) ?
-                                explode('|', $field->default_values) : $field->default_values,
-                        ];
-
-                        $allowed = true;
-
-                        // Determine if there is a model type restraint on the field
-                        if (!empty($model['type_field']) && !empty($model['type_value']) &&
-                            (count($application->router()->getRouteMatch()->getDispatchParams()) > 0)) {
-                            $params = $application->router()->getRouteMatch()->getDispatchParams();
-                            reset($params);
-                            $id = $params[key($params)];
-                            if (substr($application->router()->getRouteMatch()->getRoute(), -4) == 'edit') {
-                                $modelClass  = $model['model'];
-                                $modelType   = $model['type_field'];
-                                $modelObject = new $modelClass();
-                                if (method_exists($modelObject, 'getById')) {
-                                    $modelObject->getById($id);
-                                    $allowed = (isset($modelObject->{$modelType}) &&
-                                        ($modelObject->{$modelType} == $model['type_value']));
-                                }
-                            } else if (substr($application->router()->getRouteMatch()->getRoute(), -3) == 'add') {
-                                $allowed = ($model['type_value'] == $id);
-                            }
-                        }
-
-                        if ($allowed) {
-                            if (is_numeric($key)) {
-                                if ($field->prepend) {
-                                    $forms[$form][$key] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form][$key]);
-                                } else {
-                                    $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
-                                }
+                        if (is_numeric($key)) {
+                            if ($field->prepend) {
+                                $forms[$form][$key] = array_merge(
+                                    ['field_' . $field->id => $fieldConfig], $forms[$form][$key]
+                                );
                             } else {
+                                $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
+                            }
+                        } else {
+                            if ($field->prepend) {
+                                $forms[$form] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form]);
+                            } else {
+                                $forms[$form]['field_' . $field->id] = $fieldConfig;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $fieldGroups  = [];
+        $groupPrepend = [];
+
+        if ($groups->count() > 0) {
+            foreach ($groups->rows() as $group) {
+                $groupPrepend[$group->id] = (bool)$group->prepend;
+
+                $fields = Table\Fields::findBy(['group_id' => $group->id], null, ['order' => 'order']);
+
+                if ($fields->count() > 0) {
+                    foreach ($fields->rows() as $field) {
+                        $field->validators = unserialize($field->validators);
+                        $field->models     = unserialize($field->models);
+                        foreach ($field->models as $model) {
+                            $form = str_replace('Model', 'Form', $model['model']);
+                            if (isset($forms[$form]) && (self::isAllowed($model, $application))) {
+                                $fieldConfig = self::createFieldConfig($field);
+                                if (!isset($fieldGroups[$form])) {
+                                    $fieldGroups[$form] = [];
+                                }
+                                if (!isset($fieldGroups[$form][$field->group_id])) {
+                                    $fieldGroups[$form][$field->group_id] = [];
+                                }
                                 if ($field->prepend) {
-                                    $forms[$form] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form]);
+                                    $fieldGroups[$form][$field->group_id] = array_merge(
+                                        ['field_' . $field->id => $fieldConfig], $fieldGroups[$form][$field->group_id]
+                                    );
                                 } else {
-                                    $forms[$form]['field_' . $field->id] = $fieldConfig;
+                                    $fieldGroups[$form][$field->group_id]['field_' . $field->id] = $fieldConfig;
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+
+        foreach ($fieldGroups as $form => $configs) {
+            $keys    = array_keys($forms[$form]);
+            $numeric = true;
+            foreach ($keys as $key) {
+                if (!is_numeric($key)) {
+                    $numeric = false;
+                }
+            }
+
+            $formConfig = ($numeric) ? $forms[$form] : [$forms[$form]];
+
+            foreach ($configs as $id => $config) {
+                if ($groupPrepend[$id]) {
+                    $formConfig = array_merge($config, $formConfig);
+                } else {
+                    $formConfig[] = $config;
+                }
+            }
+
+            $forms[$form] = $formConfig;
         }
 
         $application->mergeConfig(['forms' => $forms], true);
@@ -434,6 +400,110 @@ class Field extends AbstractModel
         }
 
         return $models;
+    }
+
+
+    /**
+     * Determine if the field is allowed for the form
+     *
+     * @param  array $model
+     * @param  \Phire\Application $application
+     * @return boolean
+     */
+    protected static function isAllowed(array $model, \Phire\Application $application)
+    {
+        $allowed = true;
+
+        // Determine if there is a model type restraint on the field
+        if (!empty($model['type_field']) && !empty($model['type_value']) &&
+            (count($application->router()->getRouteMatch()->getDispatchParams()) > 0)) {
+            $params = $application->router()->getRouteMatch()->getDispatchParams();
+            reset($params);
+            $id = $params[key($params)];
+            if (substr($application->router()->getRouteMatch()->getRoute(), -4) == 'edit') {
+                $modelClass  = $model['model'];
+                $modelType   = $model['type_field'];
+                $modelObject = new $modelClass();
+                if (method_exists($modelObject, 'getById')) {
+                    $modelObject->getById($id);
+                    $allowed = (isset($modelObject->{$modelType}) &&
+                        ($modelObject->{$modelType} == $model['type_value']));
+                }
+            } else if (substr($application->router()->getRouteMatch()->getRoute(), -3) == 'add') {
+                $allowed = ($model['type_value'] == $id);
+            }
+        }
+
+        return $allowed;
+    }
+
+    /**
+     * Create field config from field object
+     *
+     * @param  \ArrayObject $field
+     * @return array
+     */
+    protected static function createFieldConfig(\ArrayObject $field)
+    {
+        $attribs = null;
+        if (!empty($field->attributes)) {
+            $attribs    = [];
+            $attributes = explode('" ', $field->attributes);
+            foreach ($attributes as $attribute) {
+                $attributeAry = explode('=', trim($attribute));
+                $att = substr($attributeAry[1], 1);
+                if (substr($att, -1) == '"') {
+                    $att = substr($att, 0, -1);
+                }
+                $attribs[$attributeAry[0]] = $att;
+            }
+        }
+
+        $validators = [];
+        if (is_array($field->validators) && (count($field->validators) > 0)) {
+            foreach ($field->validators as $validator) {
+                $class   = 'Pop\Validator\\' . $validator['validator'];
+                $value   = (!empty($validator['value']))   ? $validator['value']   : null;
+                $message = (!empty($validator['message'])) ? $validator['message'] : null;
+                $validators[] = new $class($value, $message);
+            }
+        }
+
+        if (strpos($field->values, '|')) {
+            $fValues     = explode('|', $field->values);
+            $fieldValues = [];
+            foreach ($fValues as $fv) {
+                if (strpos($fv, '::')) {
+                    $fvAry = explode('::', $fv);
+                    $fieldValues[$fvAry[0]] = $fvAry[1];
+                } else {
+                    $fieldValues[$fv] = $fv;
+                }
+            }
+        } else if (strpos($field->values, '::')) {
+            $fvAry = explode('::', $field->values);
+            $fieldValues = [$fvAry[0] => $fvAry[1]];
+        } else {
+            $fieldValues = $field->values;
+        }
+
+        $label = ((null !== $field->editor) && ($field->editor != 'source')) ?
+            $label = $field->label . ' <span class="editor-link-span">[ <a class="editor-link" data-editor="' .
+                $field->editor . '" data-fid="' . $field->id . '" data-path="' . BASE_PATH . CONTENT_PATH .
+                '" href="#">Source</a> ]</span>' :
+            $field->label;
+
+        return [
+            'type'       => ((strpos($field->type, '-history') !== false) ?
+                substr($field->type, 0, strpos($field->type, '-history')) : $field->type),
+            'label'      => $label,
+            'required'   => (bool)$field->required,
+            'attributes' => $attribs,
+            'validators' => $validators,
+            'value'      => $fieldValues,
+            'marked'     => (strpos($field->default_values, '|')) ?
+                explode('|', $field->default_values) : $field->default_values,
+        ];
     }
 
 }
