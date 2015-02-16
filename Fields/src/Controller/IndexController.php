@@ -133,7 +133,7 @@ class IndexController extends AbstractController
     }
 
     /**
-     * JSON action method
+     * JSON models action method
      *
      * @param  string $model
      * @param  int    $fid
@@ -142,12 +142,24 @@ class IndexController extends AbstractController
      */
     public function json($model, $fid = null, $marked = null)
     {
-        $json   = [];
+        $json = [];
 
+        // Get field values
+        if (null !== $fid) {
+            $fv     = Table\FieldValues::findById([$fid, $model]);
+            if (!empty($fv->value)) {
+                $values = json_decode($fv->value, true);
+                if (is_array($values)) {
+                    array_shift($values);
+                }
+            } else {
+                $values = [];
+            }
+            $json['values'] = $values;
         // Get field history values
-        if ((null !== $fid) && (null !== $marked)) {
+        } else if ((null !== $fid) && (null !== $marked)) {
             $value = '';
-            $fv    = Table\FieldValues::findById(array($fid, $model));
+            $fv    = Table\FieldValues::findById([$fid, $model]);
 
             if (isset($fv->field_id) && (null !== $fv->history)) {
                 $history = json_decode($fv->history, true);
@@ -171,6 +183,20 @@ class IndexController extends AbstractController
                 $json = $models[$model];
             }
         }
+
+        $this->response->setBody(json_encode($json, JSON_PRETTY_PRINT));
+        $this->send(200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * JSON value action method
+     *
+     * @param  int    $fid
+     * @return void
+     */
+    public function jsonValue($fid)
+    {
+        $json = ['field' => $fid];
 
         $this->response->setBody(json_encode($json, JSON_PRETTY_PRINT));
         $this->send(200, ['Content-Type' => 'application/json']);

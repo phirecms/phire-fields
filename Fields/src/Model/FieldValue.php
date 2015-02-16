@@ -125,6 +125,7 @@ class FieldValue extends AbstractModel
             ($controller->view()->form instanceof \Pop\Form\Form)) {
             $fields  = $controller->view()->form->getFields();
             $modelId = $controller->view()->form->id;
+
             foreach ($fields as $key => $value) {
                 if (substr($key, 0, 6) == 'field_') {
                     $fieldId = (int)substr($key, 6);
@@ -135,69 +136,39 @@ class FieldValue extends AbstractModel
                             $fieldValue = $fv->getColumns();
                             $value      = json_decode($fieldValue['value']);
                             if (is_array($value)) {
-                                foreach ($value as $k => $v) {
-                                    if ($k > 0) {
-                                        $key .= '_' . $k;
-                                    }
-                                    if ($field->encrypt) {
-                                        $v = (new Mcrypt())->decrypt($v);
-                                    }
-                                    if ($field->type == 'file') {
-                                        $label = $controller->view()->form->getElement($key)->getLabel() .
-                                            ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
-                                            $v . '" target="_blank">' . $v . '</a> ]';
-                                        $controller->view()->form->getElement($key)->setLabel($label);
-                                        $rmCheckbox = new \Pop\Form\Element\Input\Checkbox(
-                                            'rm_field_file_' . $field->id, [$v => 'Remove?']
-                                        );
-                                        $controller->view()->form->insertElementAfter($key, $rmCheckbox);
-                                        $v = null;
-                                    }
-                                    if ((strpos($field->type, '-history') !== false) && (null !== $fv->history)) {
-                                        $history = [0 => 'Current'];
-                                        $historyAry = json_decode($fv->history, true);
-                                        krsort($historyAry);
-                                        foreach ($historyAry as $time => $fieldValue) {
-                                            $history[$time] = date('M j, Y H:i:s', $time);
-                                        }
-
-                                        $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
-                                        $revision->setLabel('Select Revision');
-                                        $revision->setAttribute('onchange', 'phire.changeHistory(this, \'' . BASE_PATH . APP_URI . '\');');
-                                        $controller->view()->form->insertElementAfter($key, $revision);
-                                    }
-                                    $controller->view()->form->{$key} = $v;
+                                if (!isset($values[$fieldId])) {
+                                    $values[$fieldId] = $value;
                                 }
-                            } else {
-                                if ($field->encrypt) {
-                                    $value = (new Mcrypt())->decrypt($value);
-                                }
-                                if ($field->type == 'file') {
-                                    $label = $controller->view()->form->getElement($key)->getLabel() .
-                                        ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
-                                        $value . '" target="_blank">' . $value . '</a> ]';
-                                    $controller->view()->form->getElement($key)->setLabel($label);
-                                    $rmCheckbox = new \Pop\Form\Element\Input\Checkbox(
-                                        'rm_field_file_' . $field->id, [$value => 'Remove?']
-                                    );
-                                    $controller->view()->form->insertElementAfter($key, $rmCheckbox);
-                                    $value = null;
-                                }
-                                if ((strpos($field->type, '-history') !== false) && (null !== $fv->history)) {
-                                    $history = [0 => 'Current'];
-                                    $historyAry = json_decode($fv->history, true);
-                                    krsort($historyAry);
-                                    foreach ($historyAry as $time => $fieldValue) {
-                                        $history[$time] = date('M j, Y H:i:s', $time);
-                                    }
-
-                                    $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
-                                    $revision->setLabel('Select Revision');
-                                    $revision->setAttribute('onchange', 'phire.changeHistory(this, \'' . BASE_PATH . APP_URI . '\');');
-                                    $controller->view()->form->insertElementAfter($key, $revision);
-                                }
-                                $controller->view()->form->{$key} = $value;
+                                $value = $value[0];
                             }
+                            if ($field->encrypt) {
+                                $value = (new Mcrypt())->decrypt($value);
+                            }
+                            if ($field->type == 'file') {
+                                $label = $controller->view()->form->getElement($key)->getLabel() .
+                                    ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
+                                    $value . '" target="_blank">' . $value . '</a> ]';
+                                $controller->view()->form->getElement($key)->setLabel($label);
+                                $rmCheckbox = new \Pop\Form\Element\Input\Checkbox(
+                                    'rm_field_file_' . $field->id, [$value => 'Remove?']
+                                );
+                                $controller->view()->form->insertElementAfter($key, $rmCheckbox);
+                                $value = null;
+                            }
+                            if ((strpos($field->type, '-history') !== false) && (null !== $fv->history)) {
+                                $history = [0 => 'Current'];
+                                $historyAry = json_decode($fv->history, true);
+                                krsort($historyAry);
+                                foreach ($historyAry as $time => $fieldValue) {
+                                    $history[$time] = date('M j, Y H:i:s', $time);
+                                }
+
+                                $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
+                                $revision->setLabel('Select Revision');
+                                $revision->setAttribute('onchange', 'phire.changeHistory(this, \'' . BASE_PATH . APP_URI . '\');');
+                                $controller->view()->form->insertElementAfter($key, $revision);
+                            }
+                            $controller->view()->form->{$key} = $value;
                         }
                     }
                 }
@@ -314,7 +285,7 @@ class FieldValue extends AbstractModel
                                 $value   = [$value];
                                 $value[] = $postValue;
                             } else {
-                                $value   = [$postValue];
+                                $value[] = $postValue;
                             }
                             $fv->value = json_encode($value);
                             $fv->timestamp = time();

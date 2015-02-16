@@ -231,6 +231,7 @@ class Field extends AbstractModel
         $groupPrepend = [];
 
         if ($groups->count() > 0) {
+            $tab = 1001;
             foreach ($groups->rows() as $group) {
                 $groupPrepend[$group->id] = (bool)$group->prepend;
 
@@ -257,12 +258,25 @@ class Field extends AbstractModel
                                         $fieldConfig['label'] = '<a href="#" onclick="return phire.addFields([' . implode(', ', $fieldIds) . ']);">[+]</a>';
                                     }
                                 }
+
+                                if (isset($fieldConfig['attributes'])) {
+                                    $fieldConfig['attributes']['tabindex'] = $tab;
+                                    $fieldConfig['attributes']['data-path'] = BASE_PATH . APP_URI;
+                                } else {
+                                    $fieldConfig['attributes'] = [
+                                        'tabindex'  => $tab,
+                                        'data-path' => BASE_PATH . APP_URI
+                                    ];
+                                }
+                                $tab++;
+
                                 if (!isset($fieldGroups[$form])) {
                                     $fieldGroups[$form] = [];
                                 }
                                 if (!isset($fieldGroups[$form][$field->group_id])) {
                                     $fieldGroups[$form][$field->group_id] = [];
                                 }
+
                                 if ($field->prepend) {
                                     $fieldGroups[$form][$field->group_id] = array_merge(
                                         ['field_' . $field->id => $fieldConfig], $fieldGroups[$form][$field->group_id]
