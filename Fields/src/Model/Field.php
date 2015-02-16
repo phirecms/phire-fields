@@ -237,6 +237,12 @@ class Field extends AbstractModel
                 $fields = Table\Fields::findBy(['group_id' => $group->id], null, ['order' => 'order']);
 
                 if ($fields->count() > 0) {
+                    $i        = 0;
+                    $fieldIds = [];
+                    foreach ($fields->rows() as $field) {
+                        $fieldIds[] = $field->id;
+                    }
+
                     foreach ($fields->rows() as $field) {
                         $field->validators = unserialize($field->validators);
                         $field->models     = unserialize($field->models);
@@ -244,6 +250,13 @@ class Field extends AbstractModel
                             $form = str_replace('Model', 'Form', $model['model']);
                             if (isset($forms[$form]) && (self::isAllowed($model, $application))) {
                                 $fieldConfig = self::createFieldConfig($field);
+                                if (($group->dynamic) && ($i == 0)) {
+                                    if (isset($fieldConfig['label'])) {
+                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addFields([' . implode(', ', $fieldIds) . ']);">[+]</a> ' . $fieldConfig['label'];
+                                    } else {
+                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addFields([' . implode(', ', $fieldIds) . ']);">[+]</a>';
+                                    }
+                                }
                                 if (!isset($fieldGroups[$form])) {
                                     $fieldGroups[$form] = [];
                                 }
@@ -259,6 +272,7 @@ class Field extends AbstractModel
                                 }
                             }
                         }
+                        $i++;
                     }
                 }
             }

@@ -133,35 +133,71 @@ class FieldValue extends AbstractModel
                         $fv = Table\FieldValues::findById([$fieldId, $modelId]);
                         if (isset($fv->field_id)) {
                             $fieldValue = $fv->getColumns();
-                            $value = json_decode($fieldValue['value']);
-                            if ($field->encrypt) {
-                                $value = (new Mcrypt())->decrypt($value);
-                            }
-                            if ($field->type == 'file') {
-                                $label = $controller->view()->form->getElement($key)->getLabel() .
-                                    ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
-                                    $value . '" target="_blank">' . $value . '</a> ]';
-                                $controller->view()->form->getElement($key)->setLabel($label);
-                                $rmCheckbox = new \Pop\Form\Element\Input\Checkbox(
-                                    'rm_field_file_' . $field->id, [$value => 'Remove?']
-                                );
-                                $controller->view()->form->insertElementAfter($key, $rmCheckbox);
-                                $value = null;
-                            }
-                            if ((strpos($field->type, '-history') !== false) && (null !== $fv->history)) {
-                                $history    = [0 => 'Current'];
-                                $historyAry = json_decode($fv->history, true);
-                                krsort($historyAry);
-                                foreach ($historyAry as $time => $fieldValue) {
-                                    $history[$time] = date('M j, Y H:i:s', $time);
-                                }
+                            $value      = json_decode($fieldValue['value']);
+                            if (is_array($value)) {
+                                foreach ($value as $k => $v) {
+                                    if ($k > 0) {
+                                        $key .= '_' . $k;
+                                    }
+                                    if ($field->encrypt) {
+                                        $v = (new Mcrypt())->decrypt($v);
+                                    }
+                                    if ($field->type == 'file') {
+                                        $label = $controller->view()->form->getElement($key)->getLabel() .
+                                            ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
+                                            $v . '" target="_blank">' . $v . '</a> ]';
+                                        $controller->view()->form->getElement($key)->setLabel($label);
+                                        $rmCheckbox = new \Pop\Form\Element\Input\Checkbox(
+                                            'rm_field_file_' . $field->id, [$v => 'Remove?']
+                                        );
+                                        $controller->view()->form->insertElementAfter($key, $rmCheckbox);
+                                        $v = null;
+                                    }
+                                    if ((strpos($field->type, '-history') !== false) && (null !== $fv->history)) {
+                                        $history = [0 => 'Current'];
+                                        $historyAry = json_decode($fv->history, true);
+                                        krsort($historyAry);
+                                        foreach ($historyAry as $time => $fieldValue) {
+                                            $history[$time] = date('M j, Y H:i:s', $time);
+                                        }
 
-                                $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
-                                $revision->setLabel('Select Revision');
-                                $revision->setAttribute('onchange', 'phire.changeHistory(this, \'' . BASE_PATH . APP_URI . '\');');
-                                $controller->view()->form->insertElementAfter($key, $revision);
+                                        $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
+                                        $revision->setLabel('Select Revision');
+                                        $revision->setAttribute('onchange', 'phire.changeHistory(this, \'' . BASE_PATH . APP_URI . '\');');
+                                        $controller->view()->form->insertElementAfter($key, $revision);
+                                    }
+                                    $controller->view()->form->{$key} = $v;
+                                }
+                            } else {
+                                if ($field->encrypt) {
+                                    $value = (new Mcrypt())->decrypt($value);
+                                }
+                                if ($field->type == 'file') {
+                                    $label = $controller->view()->form->getElement($key)->getLabel() .
+                                        ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
+                                        $value . '" target="_blank">' . $value . '</a> ]';
+                                    $controller->view()->form->getElement($key)->setLabel($label);
+                                    $rmCheckbox = new \Pop\Form\Element\Input\Checkbox(
+                                        'rm_field_file_' . $field->id, [$value => 'Remove?']
+                                    );
+                                    $controller->view()->form->insertElementAfter($key, $rmCheckbox);
+                                    $value = null;
+                                }
+                                if ((strpos($field->type, '-history') !== false) && (null !== $fv->history)) {
+                                    $history = [0 => 'Current'];
+                                    $historyAry = json_decode($fv->history, true);
+                                    krsort($historyAry);
+                                    foreach ($historyAry as $time => $fieldValue) {
+                                        $history[$time] = date('M j, Y H:i:s', $time);
+                                    }
+
+                                    $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
+                                    $revision->setLabel('Select Revision');
+                                    $revision->setAttribute('onchange', 'phire.changeHistory(this, \'' . BASE_PATH . APP_URI . '\');');
+                                    $controller->view()->form->insertElementAfter($key, $revision);
+                                }
+                                $controller->view()->form->{$key} = $value;
                             }
-                            $controller->view()->form->{$key} = $value;
                         }
                     }
                 }
@@ -197,10 +233,12 @@ class FieldValue extends AbstractModel
                 }
             }
 
+            $fieldIds = [];
             foreach ($fields as $key => $value) {
-                if (substr($key, 0, 6) == 'field_') {
-                    $fieldId = (int)substr($key, 6);
-                    $field   = Table\Fields::findById($fieldId);
+                if ((substr($key, 0, 6) == 'field_') && (substr_count($key, '_') == 1)) {
+                    $fieldId    = (int)substr($key, 6);
+                    $fieldIds[] = $fieldId;
+                    $field      = Table\Fields::findById($fieldId);
                     if (isset($field->id)) {
                         $fv = Table\FieldValues::findById([$fieldId, $modelId]);
 
@@ -261,6 +299,37 @@ class FieldValue extends AbstractModel
                             }
                         }
                     }
+                }
+            }
+
+            foreach ($fieldIds as $fieldId) {
+                $i = 1;
+                while (isset($_POST['field_' . $fieldId . '_' . $i])) {
+                    $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                    if (!empty($_POST['field_' . $fieldId . '_' . $i])) {
+                        $postValue = $_POST['field_' . $fieldId . '_' . $i];
+                        if (isset($fv->field_id)) {
+                            $value = json_decode($fv->value);
+                            if (!is_array($value)) {
+                                $value   = [$value];
+                                $value[] = $postValue;
+                            } else {
+                                $value   = [$postValue];
+                            }
+                            $fv->value = json_encode($value);
+                            $fv->timestamp = time();
+                            $fv->save();
+                        } else {
+                            $fv = new Table\FieldValues([
+                                'field_id'  => $fieldId,
+                                'model_id'  => $modelId,
+                                'value'     => json_encode([$postValue]),
+                                'timestamp' => time()
+                            ]);
+                            $fv->save();
+                        }
+                    }
+                    $i++;
                 }
             }
         }

@@ -5,6 +5,7 @@
 phire.validatorCount = 1;
 phire.modelCount     = 1;
 phire.curFieldValue  = null;
+phire.curFields      = {};
 phire.editorIds      = [];
 
 phire.toggleEditor = function(sel) {
@@ -51,6 +52,62 @@ phire.addModel = function() {
         "name" : 'model_type_new_' + phire.modelCount,
         "id"   : 'model_type_new_' + phire.modelCount
     }).appendTo(jax('#model_type_new_1').parent());
+};
+
+phire.addFields = function(fields) {
+    var cur  = null;
+    for (var i = 0; i < fields.length; i++) {
+        if (phire.curFields['field_' + fields[i]] != undefined) {
+            phire.curFields['field_' + fields[i]]++;
+        } else {
+            phire.curFields['field_' + fields[i]] = 1;
+        }
+        if (cur == null) {
+            cur = phire.curFields['field_' + fields[i]];
+        }
+
+        var oldName = 'field_' + fields[i];
+        var newName = 'field_' + fields[i] + '_' + cur;
+        var oldObj  = jax('#' + oldName)[0];
+
+        // If the object is a checkbox or radio set, clone the fieldset
+        if ((oldObj.type == 'checkbox') || (oldObj.type == 'radio')) {
+            var fldSet       = jax(oldObj).parent();
+            var fldSetInputs = fldSet.getElementsByTagName('input');
+            var vals         = [];
+            var mrk          = [];
+            for (var j = 0; j < fldSetInputs.length; j++) {
+                vals.push(fldSetInputs[j].value);
+                if (fldSetInputs[j].checked) {
+                    mrk.push(fldSetInputs[j].value);
+                }
+            }
+            var fldSetParent = jax(fldSet).parent();
+            if (oldObj.type == 'checkbox') {
+                var attribs = {"name" : newName + '[]', "id" : newName};
+                jax(fldSetParent).appendCheckbox(vals, attribs, mrk);
+            } else {
+                var attribs = {"name" : newName, "id" : newName};
+                jax(fldSetParent).appendRadio(vals, attribs, mrk);
+            }
+        // Else, clone the input or select
+        } else {
+            var realNewName = ((oldObj.nodeName == 'SELECT') && (oldObj.getAttribute('multiple') != undefined)) ?
+            newName + '[]' :
+                newName;
+            jax('#' + oldName).clone({
+                "name" : realNewName,
+                "id"   : newName
+            }).appendTo(jax('#' + oldName).parent());
+
+            if (jax('#' + newName)[0].value != '') {
+                jax('#' + newName)[0].value = '';
+            }
+        }
+
+    }
+
+    return false;
 };
 
 phire.getModelTypes = function(sel, path, cur) {
