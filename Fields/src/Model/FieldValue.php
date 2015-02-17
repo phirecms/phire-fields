@@ -228,14 +228,14 @@ class FieldValue extends AbstractModel
                             $value = $upload->upload($_FILES[$key]['tmp_name'], $_FILES[$key]['name']);
                         }
 
-                        if (!empty($value)) {
+                        if (!empty($value) && ($value != ' ')) {
                             if (($field->encrypt) && !is_array($value)) {
                                 $value = (new Mcrypt())->create($value);
                             }
                         }
 
                         if (isset($fv->field_id)) {
-                            if (!empty($value)) {
+                            if (!empty($value) && ($value != ' ')) {
                                 if (strpos($field->type, '-history') !== false) {
                                     $oldValue = json_decode($fv->value, true);
                                     if ($value != $oldValue) {
@@ -259,7 +259,7 @@ class FieldValue extends AbstractModel
                                 $fv->delete();
                             }
                         } else {
-                            if (!empty($value)) {
+                            if (!empty($value) && ($value != ' ')) {
                                 $fv = new Table\FieldValues([
                                     'field_id'  => $fieldId,
                                     'model_id'  => $modelId,
@@ -277,7 +277,7 @@ class FieldValue extends AbstractModel
                 $i = 1;
                 while (isset($_POST['field_' . $fieldId . '_' . $i])) {
                     $fv = Table\FieldValues::findById([$fieldId, $modelId]);
-                    if (!empty($_POST['field_' . $fieldId . '_' . $i])) {
+                    if (!empty($_POST['field_' . $fieldId . '_' . $i]) && ($_POST['field_' . $fieldId . '_' . $i] != ' ')) {
                         $postValue = $_POST['field_' . $fieldId . '_' . $i];
                         if (isset($fv->field_id)) {
                             $value = json_decode($fv->value);
