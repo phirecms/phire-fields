@@ -87,16 +87,25 @@ phire.addFields = function(fields, values) {
             if ((oldObj.type == 'checkbox') || (oldObj.type == 'radio')) {
                 var fldSet = jax(oldObj).parent();
                 var fldSetInputs = fldSet.getElementsByTagName('input');
+                var fldSetSpans  = fldSet.getElementsByTagName('span');
                 var vals = [];
                 var mrk  = [];
                 if (values['field_' + fields[i]][j] != '') {
                     mrk = values['field_' + fields[i]][j];
                     for (var j = 0; j < fldSetInputs.length; j++) {
-                        vals.push(fldSetInputs[j].value);
+                        if (fldSetSpans[j] != undefined) {
+                            vals.push([fldSetInputs[j].value, fldSetSpans[j].innerHTML]);
+                        } else {
+                            vals.push(fldSetInputs[j].value);
+                        }
                     }
                 } else {
                     for (var j = 0; j < fldSetInputs.length; j++) {
-                        vals.push(fldSetInputs[j].value);
+                        if (fldSetSpans[j] != undefined) {
+                            vals.push([fldSetInputs[j].value, fldSetSpans[j].innerHTML]);
+                        } else {
+                            vals.push(fldSetInputs[j].value);
+                        }
                         if (fldSetInputs[j].checked) {
                             mrk.push(fldSetInputs[j].value);
                         }
