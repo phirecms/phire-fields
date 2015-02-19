@@ -88,23 +88,23 @@ phire.addFields = function(fields, values) {
                 var fldSet = jax(oldObj).parent();
                 var fldSetInputs = fldSet.getElementsByTagName('input');
                 var fldSetSpans  = fldSet.getElementsByTagName('span');
-                var vals = [];
+                var vals = {};
                 var mrk  = [];
                 if (values['field_' + fields[i]][j] != '') {
                     mrk = values['field_' + fields[i]][j];
                     for (var j = 0; j < fldSetInputs.length; j++) {
                         if (fldSetSpans[j] != undefined) {
-                            vals.push([fldSetInputs[j].value, fldSetSpans[j].innerHTML]);
+                            vals[fldSetInputs[j].value.toString()] = fldSetSpans[j].innerHTML;
                         } else {
-                            vals.push(fldSetInputs[j].value);
+                            vals[fldSetInputs[j].value.toString()] = fldSetInputs[j].value.toString();
                         }
                     }
                 } else {
                     for (var j = 0; j < fldSetInputs.length; j++) {
                         if (fldSetSpans[j] != undefined) {
-                            vals.push([fldSetInputs[j].value, fldSetSpans[j].innerHTML]);
+                            vals[fldSetInputs[j].value.toString()] = fldSetSpans[j].innerHTML;
                         } else {
-                            vals.push(fldSetInputs[j].value);
+                            vals[fldSetInputs[j].value.toString()] = fldSetInputs[j].value.toString();
                         }
                         if (fldSetInputs[j].checked) {
                             mrk.push(fldSetInputs[j].value);
