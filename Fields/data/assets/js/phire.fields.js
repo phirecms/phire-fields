@@ -60,28 +60,29 @@ phire.addFields = function(fields, values) {
     for (var i = 0; i < fields.length; i++) {
         var cur = null;
 
-        if (phire.curFields['field_' + fields[i]] != undefined) {
-            phire.curFields['field_' + fields[i]]++;
+        var fieldName = 'field_' + fields[i];
+        if (fieldName.substr(-2) == '[]') {
+            fieldName = fieldName.substring(0, (fieldName.length - 2));
+        }
+        if (phire.curFields[fieldName] != undefined) {
+            phire.curFields[fieldName]++;
         } else {
-            phire.curFields['field_' + fields[i]] = 1;
+            phire.curFields[fieldName] = 1;
         }
 
         if (cur == null) {
-            cur = phire.curFields['field_' + fields[i]];
+            cur = phire.curFields[fieldName];
         }
 
-        if (values['field_' + fields[i]] == undefined) {
-            values['field_' + fields[i]] = [''];
+        if (values[fieldName] == undefined) {
+            values[fieldName] = [''];
         }
 
-        for (var j = 0; j < values['field_' + fields[i]].length; j++) {
-            var oldName = 'field_' + fields[i];
-            if (oldName.substr(-2) == '[]') {
-                oldName = oldName.substring(0, (oldName.length - 2));
-            }
-            var newName = 'field_' + fields[i] + '_' + cur;
-            var oldObj = jax('#' + oldName)[0];
-            var tab = (parseInt(jax('#' + oldName).attrib('tabindex')) + (1000 * cur));
+        for (var j = 0; j < values[fieldName].length; j++) {
+            var oldName = fieldName;
+            var newName = oldName + '_' + cur;
+            var oldObj  = jax('#' + oldName)[0];
+            var tab     = (parseInt(jax('#' + oldName).attrib('tabindex')) + (1000 * cur));
 
             // If the object is a checkbox or radio set, clone the fieldset
             if ((oldObj.type == 'checkbox') || (oldObj.type == 'radio')) {
@@ -90,24 +91,24 @@ phire.addFields = function(fields, values) {
                 var fldSetSpans  = fldSet.getElementsByTagName('span');
                 var vals = {};
                 var mrk  = [];
-                if (values['field_' + fields[i]][j] != '') {
-                    mrk = values['field_' + fields[i]][j];
-                    for (var j = 0; j < fldSetInputs.length; j++) {
-                        if (fldSetSpans[j] != undefined) {
-                            vals[fldSetInputs[j].value.toString()] = fldSetSpans[j].innerHTML;
+                if (values[fieldName][j] != '') {
+                    mrk = values[fieldName][j];
+                    for (var k = 0; k < fldSetInputs.length; k++) {
+                        if (fldSetSpans[k] != undefined) {
+                            vals[fldSetInputs[k].value.toString()] = fldSetSpans[k].innerHTML;
                         } else {
-                            vals[fldSetInputs[j].value.toString()] = fldSetInputs[j].value.toString();
+                            vals[fldSetInputs[k].value.toString()] = fldSetInputs[k].value.toString();
                         }
                     }
                 } else {
-                    for (var j = 0; j < fldSetInputs.length; j++) {
-                        if (fldSetSpans[j] != undefined) {
-                            vals[fldSetInputs[j].value.toString()] = fldSetSpans[j].innerHTML;
+                    for (var k = 0; k < fldSetInputs.length; k++) {
+                        if (fldSetSpans[k] != undefined) {
+                            vals[fldSetInputs[k].value.toString()] = fldSetSpans[k].innerHTML;
                         } else {
-                            vals[fldSetInputs[j].value.toString()] = fldSetInputs[j].value.toString();
+                            vals[fldSetInputs[k].value.toString()] = fldSetInputs[k].value.toString();
                         }
-                        if (fldSetInputs[j].checked) {
-                            mrk.push(fldSetInputs[j].value);
+                        if (fldSetInputs[k].checked) {
+                            mrk.push(fldSetInputs[k].value);
                         }
                     }
                 }
@@ -120,7 +121,7 @@ phire.addFields = function(fields, values) {
                     var attribs = {"name": newName, "id": newName, "tabindex": tab};
                     jax(fldSetParent).appendRadio(vals, attribs, mrk);
                 }
-                // Else, clone the input or select
+            // Else, clone the input or select
             } else {
                 var realNewName = ((oldObj.nodeName == 'SELECT') && (oldObj.getAttribute('multiple') != undefined)) ?
                     newName + '[]' : newName;
@@ -130,13 +131,13 @@ phire.addFields = function(fields, values) {
                     "tabindex": tab
                 }).appendTo(jax('#' + oldName).parent());
 
-                if (values['field_' + fields[i]][j] != '') {
-                    jax('#' + newName)[0].value = values['field_' + fields[i]][j];
+                if (values[fieldName][j] != '') {
+                    jax('#' + newName)[0].value = values[fieldName][j];
                 } else if (jax('#' + newName)[0].value != '') {
                     jax('#' + newName)[0].value = '';
                 }
             }
-            phire.curFields['field_' + fields[i]] = cur;
+            phire.curFields[fieldName] = cur;
             cur++;
         }
 
@@ -302,7 +303,11 @@ jax(document).ready(function(){
             for (var i = 0; i < fields.length; i++) {
                 var json = jax.get(path + '/fields/json/' + jax('#id').val() + '/' + fields[i]);
                 if ((json.values != undefined) && (json.values.length > 0)) {
-                    values['field_' + fields[i]] = json.values;
+                    var fieldName = 'field_' + fields[i];
+                    if (fieldName.substr(-2) == '[]') {
+                        fieldName = fieldName.substring(0, (fieldName.length - 2));
+                    }
+                    values[fieldName] = json.values;
                     dynamic = true;
                 }
             }

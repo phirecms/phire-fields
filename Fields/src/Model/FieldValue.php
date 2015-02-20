@@ -211,7 +211,12 @@ class FieldValue extends AbstractModel
                     $fieldIds[] = $fieldId;
                     $field      = Table\Fields::findById($fieldId);
                     if (isset($field->id)) {
-                        $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                        $fv      = Table\FieldValues::findById([$fieldId, $modelId]);
+                        $dynamic = false;
+                        if (null !== $field->group_id) {
+                            $group   = Table\FieldGroups::findById($field->group_id);
+                            $dynamic = (bool)$group->dynamic;
+                        }
 
                         if (($field->type == 'file') && isset($_FILES[$key]) &&
                             !empty($_FILES[$key]['tmp_name']) && !empty($_FILES[$key]['name'])) {
@@ -236,8 +241,8 @@ class FieldValue extends AbstractModel
 
                         if (isset($fv->field_id)) {
                             if (!empty($value) && ($value != ' ')) {
+                                $oldValue = json_decode($fv->value, true);
                                 if (strpos($field->type, '-history') !== false) {
-                                    $oldValue = json_decode($fv->value, true);
                                     if ($value != $oldValue) {
                                         $ts = (null !== $fv->timestamp) ? $fv->timestamp : time() - 180;
                                         if (null !== $fv->history) {
@@ -252,7 +257,12 @@ class FieldValue extends AbstractModel
                                         }
                                     }
                                 }
-                                $fv->value = json_encode($value);
+                                if (($dynamic) && is_array($oldValue) && isset($oldValue[0])) {
+                                    $oldValue[0] = $value;
+                                    $fv->value   = json_encode($oldValue);
+                                } else {
+                                    $fv->value = json_encode($value);
+                                }
                                 $fv->timestamp = time();
                                 $fv->save();
                             } else {
@@ -263,7 +273,7 @@ class FieldValue extends AbstractModel
                                 $fv = new Table\FieldValues([
                                     'field_id'  => $fieldId,
                                     'model_id'  => $modelId,
-                                    'value'     => json_encode($value),
+                                    'value'     => ($dynamic) ? json_encode([$value]) : json_encode($value),
                                     'timestamp' => time()
                                 ]);
                                 $fv->save();
@@ -281,13 +291,12 @@ class FieldValue extends AbstractModel
                         $postValue = $_POST['field_' . $fieldId . '_' . $i];
                         if (isset($fv->field_id)) {
                             $value = json_decode($fv->value);
-                            if (!is_array($value)) {
-                                $value   = [$value];
-                                $value[] = $postValue;
+                            if (isset($value[$i])) {
+                                $value[$i] = $postValue;
                             } else {
                                 $value[] = $postValue;
                             }
-                            $fv->value = json_encode($value);
+                            $fv->value     = json_encode($value);
                             $fv->timestamp = time();
                             $fv->save();
                         } else {
