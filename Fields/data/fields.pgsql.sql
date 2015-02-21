@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]field_groups" (
   "name" varchar(255),
   "order" integer,
   "prepend" integer NOT NULL,
-  "dynamic" integer NOT NULL,
   PRIMARY KEY ("id")
 ) ;
 
@@ -45,6 +44,7 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
   "order" integer NOT NULL,
   "required" integer NOT NULL,
   "prepend" integer NOT NULL,
+  "dynamic" integer NOT NULL,
   "editor" varchar(255),
   "models" text,
   PRIMARY KEY ("id"),

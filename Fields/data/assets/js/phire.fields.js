@@ -54,93 +54,110 @@ phire.addModel = function() {
     }).appendTo(jax('#model_type_new_1').parent());
 };
 
-phire.addFields = function(fields, values) {
-    var values = (values != undefined) ? values : {};
+phire.addField = function(fid, values, path) {
+    var paths     = (path != undefined) ? phire.getPaths(path) : {};
+    var fieldName = 'field_' + fid;
+    var values    = (values != undefined) ? values : {};
+    if (fieldName.substr(-2) == '[]') {
+        fieldName = fieldName.substring(0, (fieldName.length - 2));
+    }
 
-    for (var i = 0; i < fields.length; i++) {
-        var cur = null;
+    if (phire.curFields[fieldName] != undefined) {
+        phire.curFields[fieldName]++;
+    } else {
+        phire.curFields[fieldName] = 1;
+    }
 
-        var fieldName = 'field_' + fields[i];
-        if (fieldName.substr(-2) == '[]') {
-            fieldName = fieldName.substring(0, (fieldName.length - 2));
-        }
-        if (phire.curFields[fieldName] != undefined) {
-            phire.curFields[fieldName]++;
-        } else {
-            phire.curFields[fieldName] = 1;
-        }
+    var cur = phire.curFields[fieldName];
 
-        if (cur == null) {
-            cur = phire.curFields[fieldName];
-        }
+    if (values[fieldName] == undefined) {
+        values[fieldName] = [''];
+    }
 
-        if (values[fieldName] == undefined) {
-            values[fieldName] = [''];
-        }
+    for (var j = 0; j < values[fieldName].length; j++) {
+        var oldName = fieldName;
+        var newName = oldName + '_' + cur;
+        var oldObj  = jax('#' + oldName)[0];
+        var tab = (jax('#' + oldName).attrib('tabindex') != null) ?
+            (parseInt(jax('#' + oldName).attrib('tabindex')) + (1000 * cur)) : null;
 
-        for (var j = 0; j < values[fieldName].length; j++) {
-            var oldName = fieldName;
-            var newName = oldName + '_' + cur;
-            var oldObj  = jax('#' + oldName)[0];
-            var tab     = (parseInt(jax('#' + oldName).attrib('tabindex')) + (1000 * cur));
-
-            // If the object is a checkbox or radio set, clone the fieldset
-            if ((oldObj.type == 'checkbox') || (oldObj.type == 'radio')) {
-                var fldSet = jax(oldObj).parent();
-                var fldSetInputs = fldSet.getElementsByTagName('input');
-                var fldSetSpans  = fldSet.getElementsByTagName('span');
-                var vals = {};
-                var mrk  = [];
-                if (values[fieldName][j] != '') {
-                    mrk = values[fieldName][j];
-                    for (var k = 0; k < fldSetInputs.length; k++) {
-                        if (fldSetSpans[k] != undefined) {
-                            vals[fldSetInputs[k].value.toString()] = fldSetSpans[k].innerHTML;
-                        } else {
-                            vals[fldSetInputs[k].value.toString()] = fldSetInputs[k].value.toString();
-                        }
-                    }
-                } else {
-                    for (var k = 0; k < fldSetInputs.length; k++) {
-                        if (fldSetSpans[k] != undefined) {
-                            vals[fldSetInputs[k].value.toString()] = fldSetSpans[k].innerHTML;
-                        } else {
-                            vals[fldSetInputs[k].value.toString()] = fldSetInputs[k].value.toString();
-                        }
-                        if (fldSetInputs[k].checked) {
-                            mrk.push(fldSetInputs[k].value);
-                        }
+        // If the object is a checkbox or radio set, clone the fieldset
+        if ((oldObj.type == 'checkbox') || (oldObj.type == 'radio')) {
+            var fldSet = jax(oldObj).parent();
+            var fldSetInputs = fldSet.getElementsByTagName('input');
+            var fldSetSpans  = fldSet.getElementsByTagName('span');
+            var vals = {};
+            var mrk  = [];
+            if (values[fieldName][j] != '') {
+                mrk = values[fieldName][j];
+                for (var k = 0; k < fldSetInputs.length; k++) {
+                    if (fldSetSpans[k] != undefined) {
+                        vals[fldSetInputs[k].value.toString()] = fldSetSpans[k].innerHTML;
+                    } else {
+                        vals[fldSetInputs[k].value.toString()] = fldSetInputs[k].value.toString();
                     }
                 }
-
-                var fldSetParent = jax(fldSet).parent();
-                if (oldObj.type == 'checkbox') {
-                    var attribs = {"name": newName + '[]', "id": newName, "tabindex": tab};
-                    jax(fldSetParent).appendCheckbox(vals, attribs, mrk);
-                } else {
-                    var attribs = {"name": newName, "id": newName, "tabindex": tab};
-                    jax(fldSetParent).appendRadio(vals, attribs, mrk);
-                }
-            // Else, clone the input or select
             } else {
-                var realNewName = ((oldObj.nodeName == 'SELECT') && (oldObj.getAttribute('multiple') != undefined)) ?
-                    newName + '[]' : newName;
-                jax('#' + oldName).clone({
-                    "name": realNewName,
-                    "id": newName,
-                    "tabindex": tab
-                }).appendTo(jax('#' + oldName).parent());
+                for (var k = 0; k < fldSetInputs.length; k++) {
+                    if (fldSetSpans[k] != undefined) {
+                        vals[fldSetInputs[k].value.toString()] = fldSetSpans[k].innerHTML;
+                    } else {
+                        vals[fldSetInputs[k].value.toString()] = fldSetInputs[k].value.toString();
+                    }
+                    if (fldSetInputs[k].checked) {
+                        mrk.push(fldSetInputs[k].value);
+                    }
+                }
+            }
 
+            var fldSetParent = jax(fldSet).parent();
+            if (oldObj.type == 'checkbox') {
+                var attribs = {"name": newName + '[]', "id": newName};
+                if (tab != null) {
+                    attribs.tabindex = tab;
+                }
+                jax(fldSetParent).appendCheckbox(vals, attribs, mrk);
+            } else {
+                var attribs = {"name": newName, "id": newName};
+                if (tab != null) {
+                    attribs.tabindex = tab;
+                }
+                jax(fldSetParent).appendRadio(vals, attribs, mrk);
+            }
+            // Else, clone the input or select
+        } else {
+            var realNewName = ((oldObj.nodeName == 'SELECT') && (oldObj.getAttribute('multiple') != undefined)) ?
+            newName + '[]' : newName;
+            var attribs = {
+                "name": realNewName,
+                "id": newName
+            };
+            if (tab != null) {
+                attribs.tabindex = tab;
+            }
+            jax('#' + oldName).clone(attribs).appendTo(jax('#' + oldName).parent());
+
+            if (jax('#' + newName)[0].type != 'file') {
                 if (values[fieldName][j] != '') {
                     jax('#' + newName)[0].value = values[fieldName][j];
                 } else if (jax('#' + newName)[0].value != '') {
                     jax('#' + newName)[0].value = '';
                 }
+            } else {
+                if (jax('#rm_field_file_' + fid)[0] != undefined) {
+                    var fileFieldSetParent = jax(jax('#rm_field_file_' + fid).parent()).parent();
+                    var fileValues = {};
+                    var filePath = (paths.base_path != undefined) ? paths.base_path + paths.content_path + '/assets/fields/files/' + values[fieldName][j] : '#';
+                    fileValues[values[fieldName][j].toString()] = 'Remove <a href="' + filePath + '" target="_blank">' + values[fieldName][j] + '</a>?';
+                    jax(fileFieldSetParent).appendCheckbox(fileValues, {
+                        "name": 'rm_field_file_' + fid + '_' + (j + 1) + '[]',
+                        "id": 'rm_field_file_' + fid + '_' + (j + 1)
+                    });
+                }
             }
-            phire.curFields[fieldName] = cur;
-            cur++;
         }
-
+        phire.curFields[fieldName] = cur;
+        cur++;
     }
 
     return false;
@@ -298,22 +315,19 @@ jax(document).ready(function(){
         }
 
         if ((fields.length > 0) && (path != null)) {
-            var values  = {};
-            var dynamic = false;
+            var values = {};
             for (var i = 0; i < fields.length; i++) {
                 var json = jax.get(path + '/fields/json/' + jax('#id').val() + '/' + fields[i]);
-                if ((json.values != undefined) && (json.values.length > 0)) {
+                if ((json.values != undefined) && (json.values.constructor == Array) && (json.values.length > 0)) {
                     var fieldName = 'field_' + fields[i];
+                    var fieldId   = fields[i];
                     if (fieldName.substr(-2) == '[]') {
                         fieldName = fieldName.substring(0, (fieldName.length - 2));
+                        fieldId   = fieldId.substring(0, (fieldName.length - 2));
                     }
                     values[fieldName] = json.values;
-                    dynamic = true;
+                    phire.addField(fieldId, values, path);
                 }
-            }
-
-            if (dynamic) {
-                phire.addFields(fields, values);
             }
         }
     }

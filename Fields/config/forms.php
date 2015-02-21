@@ -47,6 +47,15 @@ return [
                 ],
                 'marked' => 0
             ],
+            'dynamic' => [
+                'type'  => 'radio',
+                'label' => 'Dynamic',
+                'value' => [
+                    '1' => 'Yes',
+                    '0' => 'No'
+                ],
+                'marked' => 0
+            ],
             'id' => [
                 'type'  => 'hidden',
                 'value' => 0
@@ -124,15 +133,6 @@ return [
                     '0' => 'Append',
                     '1' => 'Prepend'
                 ]
-            ],
-            'dynamic' => [
-                'type'  => 'radio',
-                'label' => 'Dynamic',
-                'value' => [
-                    '1' => 'Yes',
-                    '0' => 'No'
-                ],
-                'marked' => 0
             ],
             'order' => [
                 'type'       => 'text',

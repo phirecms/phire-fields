@@ -73,6 +73,7 @@ class Field extends AbstractModel
             'order'          => (!empty($fields['order'])) ? (int)$fields['order'] : 0,
             'required'       => (!empty($fields['required'])) ? (int)$fields['required'] : 0,
             'prepend'        => (int)$fields['prepend'],
+            'dynamic'        => (int)$fields['dynamic'],
             'editor'         => (!empty($fields['editor']) && (strpos($fields['type'], 'textarea') !== false)) ?
                 $fields['editor'] : null,
             'models'         => serialize($this->getModels())
@@ -104,6 +105,7 @@ class Field extends AbstractModel
             $field->order          = (!empty($fields['order'])) ? (int)$fields['order'] : 0;
             $field->required       = (!empty($fields['required'])) ? (int)$fields['required'] : 0;
             $field->prepend        = (int)$fields['prepend'];
+            $field->dynamic        = (int)$fields['dynamic'];
             $field->editor         = (!empty($fields['editor']) && (strpos($fields['type'], 'textarea') !== false)) ?
                 $fields['editor'] : null;
             $field->models         = serialize($this->getModels());
@@ -207,6 +209,21 @@ class Field extends AbstractModel
 
                         $fieldConfig = self::createFieldConfig($field);
 
+                        if ($field->dynamic) {
+                            if (isset($fieldConfig['label'])) {
+                                $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ');">[+]</a> ' . $fieldConfig['label'];
+                            } else {
+                                $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ');">[+]</a>';
+                            }
+                            if (isset($fieldConfig['attributes'])) {
+                                $fieldConfig['attributes']['data-path'] = BASE_PATH . APP_URI;
+                            } else {
+                                $fieldConfig['attributes'] = [
+                                    'data-path' => BASE_PATH . APP_URI
+                                ];
+                            }
+                        }
+
                         if (is_numeric($key)) {
                             if ($field->prepend) {
                                 $forms[$form][$key] = array_merge(
@@ -238,12 +255,7 @@ class Field extends AbstractModel
                 $fields = Table\Fields::findBy(['group_id' => $group->id], null, ['order' => 'order']);
 
                 if ($fields->count() > 0) {
-                    $i        = 0;
-                    $fieldIds = [];
-                    foreach ($fields->rows() as $field) {
-                        $fieldIds[] = $field->id;
-                    }
-
+                    $i = 0;
                     foreach ($fields->rows() as $field) {
                         $field->validators = unserialize($field->validators);
                         $field->models     = unserialize($field->models);
@@ -251,11 +263,11 @@ class Field extends AbstractModel
                             $form = str_replace('Model', 'Form', $model['model']);
                             if (isset($forms[$form]) && (self::isAllowed($model, $application))) {
                                 $fieldConfig = self::createFieldConfig($field);
-                                if (($group->dynamic) && ($i == 0)) {
+                                if (($field->dynamic) && ($i == 0)) {
                                     if (isset($fieldConfig['label'])) {
-                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addFields([' . implode(', ', $fieldIds) . ']);">[+]</a> ' . $fieldConfig['label'];
+                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ');">[+]</a> ' . $fieldConfig['label'];
                                     } else {
-                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addFields([' . implode(', ', $fieldIds) . ']);">[+]</a>';
+                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ']);">[+]</a>';
                                     }
                                 }
 

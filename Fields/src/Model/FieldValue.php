@@ -145,12 +145,10 @@ class FieldValue extends AbstractModel
                                 $value = (new Mcrypt())->decrypt($value);
                             }
                             if ($field->type == 'file') {
-                                $label = $controller->view()->form->getElement($key)->getLabel() .
-                                    ' [ <a href="' . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
-                                    $value . '" target="_blank">' . $value . '</a> ]';
-                                $controller->view()->form->getElement($key)->setLabel($label);
-                                $rmCheckbox = new \Pop\Form\Element\Input\Checkbox(
-                                    'rm_field_file_' . $field->id, [$value => 'Remove?']
+                                $rmCheckbox = new \Pop\Form\Element\CheckboxSet(
+                                    'rm_field_file_' . $field->id, [$value => 'Remove <a href="' .
+                                        BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
+                                        $value . '" target="_blank">' . $value . '</a>?']
                                 );
                                 $controller->view()->form->insertElementAfter($key, $rmCheckbox);
                                 $value = null;
@@ -192,31 +190,51 @@ class FieldValue extends AbstractModel
 
             foreach ($_POST as $key => $value) {
                 if (substr($key, 0, 14) == 'rm_field_file_') {
-                    $fieldId = (int)substr($key, (strrpos($key, '_') + 1));
-                    $fv      = Table\FieldValues::findById([$fieldId, $modelId]);
+                    $i       = 0;
+                    $fieldId = substr($key, 14);
+                    if (strpos($fieldId, '_') !== false) {
+                        $i       = substr($fieldId, (strrpos($fieldId, '_') + 1));
+                        $fieldId = substr($fieldId, 0, strpos($fieldId, '_'));
+                    }
+
+                    $fv = Table\FieldValues::findById([$fieldId, $modelId]);
                     if (isset($fv->field_id)) {
-                        $oldFile = json_decode($fv->value);
-                        if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile)) {
-                            unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile);
+                        $oldValue = json_decode($fv->value);
+                        if (is_array($oldValue)) {
+                            if (isset($oldValue[$i])) {
+                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue[$i])) {
+                                    unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue[$i]);
+                                }
+                                unset($oldValue[$i]);
+                            }
+                            if (count($oldValue) == 0) {
+                                $fv->delete();
+                            } else {
+                                $oldValue = array_values($oldValue);
+                                $fv->value = json_encode($oldValue);
+                                $fv->save();
+                            }
+                        } else {
+                            if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue)) {
+                                unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue);
+                            }
+                            $fv->delete();
                         }
-                        $fv->delete();
                     }
                 }
             }
 
-            $fieldIds = [];
+            $dynamicFieldIds = [];
             foreach ($fields as $key => $value) {
                 if ((substr($key, 0, 6) == 'field_') && (substr_count($key, '_') == 1)) {
-                    $fieldId    = (int)substr($key, 6);
-                    $fieldIds[] = $fieldId;
-                    $field      = Table\Fields::findById($fieldId);
+                    $fieldId = (int)substr($key, 6);
+                    $field   = Table\Fields::findById($fieldId);
                     if (isset($field->id)) {
-                        $fv      = Table\FieldValues::findById([$fieldId, $modelId]);
-                        $dynamic = false;
-                        if (null !== $field->group_id) {
-                            $group   = Table\FieldGroups::findById($field->group_id);
-                            $dynamic = (bool)$group->dynamic;
+                        if ($field->dynamic) {
+                            $dynamicFieldIds[] = $field->id;
                         }
+
+                        $fv = Table\FieldValues::findById([$fieldId, $modelId]);
 
                         if (($field->type == 'file') && isset($_FILES[$key]) &&
                             !empty($_FILES[$key]['tmp_name']) && !empty($_FILES[$key]['name'])) {
@@ -257,15 +275,16 @@ class FieldValue extends AbstractModel
                                         }
                                     }
                                 }
-                                if (($dynamic) && is_array($oldValue) && isset($oldValue[0])) {
+                                if (($field->dynamic) && is_array($oldValue) && isset($oldValue[0])) {
                                     $oldValue[0] = $value;
-                                    $fv->value   = json_encode($oldValue);
+                                    $newValue    = json_encode($oldValue);
                                 } else {
-                                    $fv->value = json_encode($value);
+                                    $newValue = json_encode($value);
                                 }
+                                $fv->value     = $newValue;
                                 $fv->timestamp = time();
                                 $fv->save();
-                            } else {
+                            } else if (!$field->dynamic) {
                                 $fv->delete();
                             }
                         } else {
@@ -273,7 +292,7 @@ class FieldValue extends AbstractModel
                                 $fv = new Table\FieldValues([
                                     'field_id'  => $fieldId,
                                     'model_id'  => $modelId,
-                                    'value'     => ($dynamic) ? json_encode([$value]) : json_encode($value),
+                                    'value'     => ($field->dynamic) ? json_encode([$value]) : json_encode($value),
                                     'timestamp' => time()
                                 ]);
                                 $fv->save();
@@ -283,16 +302,79 @@ class FieldValue extends AbstractModel
                 }
             }
 
-            foreach ($fieldIds as $fieldId) {
+            foreach ($dynamicFieldIds as $fieldId) {
                 $i = 1;
+                $offset = 0;
+                $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+
+                $checkValue = json_decode($fv->value, true);
+                if (is_array($checkValue) && isset($checkValue[0]) && is_array($checkValue[0])) {
+                    foreach ($checkValue as $k => $v) {
+                        $fieldToCheck = ($k > 0) ? 'field_' . $fieldId . '_' . $k : 'field_' . $fieldId;
+                        if (!isset($_POST[$fieldToCheck])) {
+                            unset($checkValue[$k]);
+                        }
+                    }
+                    $checkValue = array_values($checkValue);
+                    $fv->value = json_encode($checkValue);
+                    $fv->timestamp = time();
+                    $fv->save();
+                }
+
                 while (isset($_POST['field_' . $fieldId . '_' . $i])) {
-                    $fv = Table\FieldValues::findById([$fieldId, $modelId]);
                     if (!empty($_POST['field_' . $fieldId . '_' . $i]) && ($_POST['field_' . $fieldId . '_' . $i] != ' ')) {
                         $postValue = $_POST['field_' . $fieldId . '_' . $i];
                         if (isset($fv->field_id)) {
-                            $value = json_decode($fv->value);
-                            if (isset($value[$i])) {
-                                $value[$i] = $postValue;
+                            $value = json_decode($fv->value, true);
+                            if (isset($value[$i - $offset])) {
+                                $value[$i - $offset] = $postValue;
+                            } else {
+                                $value[] = $postValue;
+                            }
+                            $fv->value = json_encode($value);
+                            $fv->timestamp = time();
+                            $fv->save();
+                        } else {
+                            $fv = new Table\FieldValues([
+                                'field_id' => $fieldId,
+                                'model_id' => $modelId,
+                                'value' => json_encode([$postValue]),
+                                'timestamp' => time()
+                            ]);
+                            $fv->save();
+                        }
+                    } else if (isset($fv->field_id)) {
+                        $value = json_decode($fv->value, true);
+                        if (isset($value[$i])) {
+                            unset($value[$i]);
+                            $value = array_values($value);
+                            $offset++;
+                        }
+                        $fv->value = json_encode($value);
+                        $fv->timestamp = time();
+                        $fv->save();
+                    }
+                    $i++;
+                }
+            }
+
+            foreach ($dynamicFieldIds as $fieldId) {
+                $i      = 1;
+                $offset = 0;
+                $fv     = Table\FieldValues::findById([$fieldId, $modelId]);
+
+                while (isset($_FILES['field_' . $fieldId . '_' . $i])) {
+                    if (!empty($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'])) {
+                        $upload = new Upload(
+                            $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files',
+                            $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
+                        );
+                        $postValue = $upload->upload($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'], $_FILES['field_' . $fieldId . '_' . $i]['name']);
+
+                        if (isset($fv->field_id)) {
+                            $value = json_decode($fv->value, true);
+                            if (isset($value[$i - $offset])) {
+                                $value[$i - $offset] = $postValue;
                             } else {
                                 $value[] = $postValue;
                             }
