@@ -258,8 +258,8 @@ class FieldValue extends AbstractModel
                         }
 
                         if (isset($fv->field_id)) {
+                            $oldValue = json_decode($fv->value, true);
                             if (!empty($value) && ($value != ' ')) {
-                                $oldValue = json_decode($fv->value, true);
                                 if (strpos($field->type, '-history') !== false) {
                                     if ($value != $oldValue) {
                                         $ts = (null !== $fv->timestamp) ? $fv->timestamp : time() - 180;
@@ -286,6 +286,12 @@ class FieldValue extends AbstractModel
                                 $fv->save();
                             } else if (!$field->dynamic) {
                                 $fv->delete();
+                            } else if (($field->dynamic) && is_array($oldValue) && isset($oldValue[0])) {
+                                $oldValue[0]   = '';
+                                $newValue      = json_encode($oldValue);
+                                $fv->value     = $newValue;
+                                $fv->timestamp = time();
+                                $fv->save();
                             }
                         } else {
                             if (!empty($value) && ($value != ' ')) {
@@ -303,9 +309,9 @@ class FieldValue extends AbstractModel
             }
 
             foreach ($dynamicFieldIds as $fieldId) {
-                $i = 1;
+                $i      = 1;
                 $offset = 0;
-                $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                $fv     = Table\FieldValues::findById([$fieldId, $modelId]);
 
                 $checkValue = json_decode($fv->value, true);
                 if (is_array($checkValue) && isset($checkValue[0]) && is_array($checkValue[0])) {
@@ -392,6 +398,19 @@ class FieldValue extends AbstractModel
                         }
                     }
                     $i++;
+                }
+            }
+
+            foreach ($dynamicFieldIds as $fieldId) {
+                $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                if (isset($fv->field_id)) {
+                    $value = json_decode($fv->value, true);
+                    if (is_array($value) && isset($value[0]) && empty($value[0])) {
+                        unset($value[0]);
+                        $value = array_values($value);
+                        $fv->value = json_encode($value);
+                        $fv->save();
+                    }
                 }
             }
         }
