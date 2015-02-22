@@ -54,8 +54,7 @@ phire.addModel = function() {
     }).appendTo(jax('#model_type_new_1').parent());
 };
 
-phire.addField = function(fid, values, path) {
-    var paths     = (path != undefined) ? phire.getPaths(path) : {};
+phire.addField = function(fid, values) {
     var fieldName = 'field_' + fid;
     var values    = (values != undefined) ? values : {};
     if (fieldName.substr(-2) == '[]') {
@@ -147,7 +146,13 @@ phire.addField = function(fid, values, path) {
                 if (jax('#rm_field_file_' + fid)[0] != undefined) {
                     var fileFieldSetParent = jax(jax('#rm_field_file_' + fid).parent()).parent();
                     var fileValues = {};
-                    var filePath = (paths.base_path != undefined) ? paths.base_path + paths.content_path + '/assets/fields/files/' + values[fieldName][j] : '#';
+                    var filePath   = '#';
+
+                    if (jax.cookie.load('phire') != '') {
+                        var phireCookie = jax.cookie.load('phire');
+                        filePath = phireCookie.base_path + phireCookie.content_path + '/assets/fields/files/' + values[fieldName][j];
+                    }
+
                     fileValues[values[fieldName][j].toString()] = 'Remove <a href="' + filePath + '" target="_blank">' + values[fieldName][j] + '</a>?';
                     jax(fileFieldSetParent).appendCheckbox(fileValues, {
                         "name": 'rm_field_file_' + fid + '_' + (j + 1) + '[]',
@@ -178,7 +183,9 @@ phire.getModelTypes = function(sel, path, cur) {
             var json = jax.get(path + '/fields/json/' + jax(sel).val());
             if (json.length > 0) {
                 for (var i = 0; i < json.length; i++) {
-                    jax('#model_type_' + cur + '_' + id).append('option', {"value" : json[i].type_field + '|' + json[i].type_value}, json[i].type_name);
+                    jax('#model_type_' + cur + '_' + id).append('option', {
+                        "value" : json[i].type_field + '|' + json[i].type_value
+                    }, json[i].type_name);
                 }
             }
         }
@@ -326,7 +333,7 @@ jax(document).ready(function(){
                         fieldId   = fieldId.substring(0, (fieldName.length - 2));
                     }
                     values[fieldName] = json.values;
-                    phire.addField(fieldId, values, path);
+                    phire.addField(fieldId, values);
                 }
             }
         }

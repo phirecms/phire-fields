@@ -139,7 +139,9 @@ class FieldValue extends AbstractModel
                                 if (!isset($values[$fieldId])) {
                                     $values[$fieldId] = $value;
                                 }
-                                $value = $value[0];
+                                if (isset($value[0])) {
+                                    $value = $value[0];
+                                }
                             }
                             if ($field->encrypt) {
                                 $value = (new Mcrypt())->decrypt($value);
@@ -189,7 +191,7 @@ class FieldValue extends AbstractModel
             $modelId = $controller->view()->id;
 
             foreach ($_POST as $key => $value) {
-                if (substr($key, 0, 14) == 'rm_field_file_') {
+                if ((substr($key, 0, 14) == 'rm_field_file_') && isset($value[0])) {
                     $i       = 0;
                     $fieldId = substr($key, 14);
                     if (strpos($fieldId, '_') !== false) {
@@ -201,11 +203,12 @@ class FieldValue extends AbstractModel
                     if (isset($fv->field_id)) {
                         $oldValue = json_decode($fv->value);
                         if (is_array($oldValue)) {
-                            if (isset($oldValue[$i])) {
-                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue[$i])) {
-                                    unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue[$i]);
+                            if (array_search($value[0], $oldValue) !== false) {
+                                $k = array_search($value[0], $oldValue);
+                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue[$k])) {
+                                    unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue[$k]);
                                 }
-                                unset($oldValue[$i]);
+                                unset($oldValue[$k]);
                             }
                             if (count($oldValue) == 0) {
                                 $fv->delete();
