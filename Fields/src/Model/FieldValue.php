@@ -292,7 +292,7 @@ class FieldValue extends AbstractModel
                                 $fv->save();
                             } else if (!$field->dynamic) {
                                 $fv->delete();
-                            } else if (($field->dynamic) && is_array($oldValue) && isset($oldValue[0])) {
+                            } else if (($field->dynamic) && ($field->type != 'file') && is_array($oldValue) && isset($oldValue[0])) {
                                 $oldValue[0]   = '';
                                 $newValue      = json_encode($oldValue);
                                 $fv->value     = $newValue;
