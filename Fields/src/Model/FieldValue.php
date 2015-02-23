@@ -16,26 +16,28 @@ class FieldValue extends AbstractModel
      *
      * @param  string $class
      * @param  array  $params
+     * @param  string $method
      * @throws \Exception
      * @return mixed
      */
-    public static function getAllModelObjects($class, array $params = [])
+    public static function getModelObjects($class, array $params = [], $method = 'getAll')
     {
         $model = new $class();
-        if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, 'getAll')) {
+
+        if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, $method)) {
             throw new \Exception(
-                'Error: The model class must be an instance of Phire\Model\AbstractModel and have the getAll method.'
+                'Error: The model class must be an instance of Phire\Model\AbstractModel and have the \'' . $method .  '\' method.'
             );
         }
 
-        $method       = new \ReflectionMethod($class, 'getAll');
-        $methodParams = $method->getParameters();
+        $reflect      = new \ReflectionMethod($class, $method);
+        $methodParams = $reflect->getParameters();
         $realParams   = [];
         foreach ($methodParams as $param) {
             $realParams[$param->name] = (isset($params[$param->name]) ? $params[$param->name] : null);
         }
 
-        $rows = call_user_func_array([$model, 'getAll'], $realParams);
+        $rows = call_user_func_array([$model, $method], $realParams);
 
         foreach ($rows as $row) {
             $sql   = Table\Fields::sql();
@@ -58,24 +60,25 @@ class FieldValue extends AbstractModel
     }
 
     /**
-     * Get model object with dynamic field values
+     * Get single model object with dynamic field values
      *
      * @param  string $class
-     * @param  int    $id
+     * @param  array  $params
+     * @param  string $method
      * @throws \Exception
      * @return mixed
      */
-    public static function getModelObjectById($class, $id)
+    public static function getModelObject($class, array $params, $method = 'getById')
     {
         $model = new $class();
 
-        if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, 'getById')) {
+        if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, $method)) {
             throw new \Exception(
-                'Error: The model class must be an instance of Phire\Model\AbstractModel and have the getById method.'
+                'Error: The model class must be an instance of Phire\Model\AbstractModel and have the \'' . $method .  '\' method.'
             );
         }
 
-        $model->getById($id);
+        call_user_func_array([$model, $method], $params);
 
         if (isset($model->id)) {
             $model = self::getModelObjectValues($model);
