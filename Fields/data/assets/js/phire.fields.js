@@ -255,7 +255,7 @@ phire.loadEditor = function(editor, id) {
                     CKEDITOR.replace(
                         'field_' + phire.editorIds[i].id,
                         {
-                            width                   : phire.editorIds[i].width,
+                            width                   : 'auto',
                             height                  : phire.editorIds[i].height,
                             allowedContent          : true,
                             filebrowserBrowseUrl    : sysPath + '/fields/browser?editor=ckeditor&type=file',
@@ -281,7 +281,7 @@ phire.loadEditor = function(editor, id) {
                             ],
                             image_advtab          : true,
                             toolbar1              : "insertfile undo redo | styleselect | forecolor backcolor | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | link image",
-                            width                 : phire.editorIds[i].width,
+                            width                 : 'auto',
                             height                : phire.editorIds[i].height,
                             relative_urls         : false,
                             convert_urls          : 0,
