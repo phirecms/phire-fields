@@ -4,6 +4,7 @@ namespace Fields\Model;
 
 use Fields\Table;
 use Phire\Model\AbstractModel;
+use Pop\File\Dir;
 
 class Field extends AbstractModel
 {
@@ -50,6 +51,32 @@ class Field extends AbstractModel
             $field->models     = unserialize($field->models);
             $this->data        = array_merge($this->data, $field->getColumns());
         }
+    }
+
+    /**
+     * Get uploaded files
+     *
+     * @param  int $limit
+     * @param  int $page
+     * @return array
+     */
+    public function getAllFiles($limit = null, $page = null)
+    {
+        $files = [];
+        $dir   = new Dir($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files');
+        foreach ($dir->getFiles() as $file) {
+            if ($file != 'index.html') {
+                $files[BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $file] = $file;
+            }
+        }
+
+        if (count($files) > $limit) {
+            $offset = ((null !== $page) && ((int)$page > 1)) ?
+                ($page * $limit) - $limit : 0;
+            $files = array_slice($files, $offset, $limit, true);
+        }
+
+        return $files;
     }
 
     /**
@@ -145,6 +172,18 @@ class Field extends AbstractModel
     }
 
     /**
+     * Determine if list of fields has pages
+     *
+     * @param  int $limit
+     * @return boolean
+     */
+    public function hasFiles($limit)
+    {
+        $files = $this->getAllFiles();
+        return (count($files) > $limit);
+    }
+
+    /**
      * Get count of fields
      *
      * @return int
@@ -152,6 +191,17 @@ class Field extends AbstractModel
     public function getCount()
     {
         return Table\Fields::findAll()->count();
+    }
+
+    /**
+     * Determine if list of fields has pages
+     *
+     * @return int
+     */
+    public function getFileCount()
+    {
+        $files = $this->getAllFiles();
+        return count($files);
     }
 
     /**

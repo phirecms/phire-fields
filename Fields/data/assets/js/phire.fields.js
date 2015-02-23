@@ -136,11 +136,18 @@ phire.addField = function(fid, values) {
             }
             jax('#' + oldName).clone(attribs).appendTo(jax('#' + oldName).parent());
 
+            if (jax('#' + newName)[0].nodeName == 'SELECT') {
+                var opts = jax('#' + newName + ' > option');
+
+                for (var o = 0; o < opts.length; o++) {
+                    opts[o].selected = false;
+                }
+            }
+
             if (jax('#' + newName)[0].type != 'file') {
+                jax('#' + newName).val('');
                 if (values[fieldName][j] != '') {
-                    jax('#' + newName)[0].value = values[fieldName][j];
-                } else if (jax('#' + newName)[0].value != '') {
-                    jax('#' + newName)[0].value = '';
+                    jax('#' + newName).val(values[fieldName][j]);
                 }
             } else {
                 if (jax('#rm_field_file_' + fid)[0] != undefined) {
@@ -193,10 +200,10 @@ phire.getModelTypes = function(sel, path, cur) {
 };
 
 phire.changeHistory = function(sel, path) {
-    var ids = sel.id.substring(sel.id.indexOf('_') + 1).split('_');
+    var ids     = sel.id.substring(sel.id.indexOf('_') + 1).split('_');
     var modelId = ids[0];
     var fieldId = ids[1];
-    var marked = jax('#' + sel.id + ' > option:selected').val();
+    var marked  = jax('#' + sel.id + ' > option:selected').val();
 
     if ((phire.curFieldValue == null) && (jax('#field_' + fieldId)[0] != undefined)) {
         phire.curFieldValue = jax('#field_' + fieldId).val();
@@ -205,7 +212,6 @@ phire.changeHistory = function(sel, path) {
     if (marked != 0) {
         var j = jax.json.parse(path + '/fields/json/' + modelId + '/' + fieldId + '/' + marked);
         if (jax('#field_' + j.fieldId)[0] != undefined) {
-            /*
             if (typeof CKEDITOR !== 'undefined') {
                 if (CKEDITOR.instances['field_' + j.fieldId] != undefined) {
                     CKEDITOR.instances['field_' + j.fieldId].setData(j.value);
@@ -213,20 +219,17 @@ phire.changeHistory = function(sel, path) {
             } else if (typeof tinymce !== 'undefined') {
                 tinymce.activeEditor.setContent(j.value);
             }
-            */
             jax('#field_' + j.fieldId).val(j.value);
         }
     } else {
         if (jax('#field_' + fieldId)[0] != undefined) {
-            /*
             if (typeof CKEDITOR !== 'undefined') {
                 if (CKEDITOR.instances['field_' + fieldId] != undefined) {
-                    CKEDITOR.instances['field_' + fieldId].setData(phire.curValue);
+                    CKEDITOR.instances['field_' + fieldId].setData(phire.curFieldValue);
                 }
             } else if (typeof tinymce !== 'undefined') {
-                tinymce.activeEditor.setContent(phire.curValue);
+                tinymce.activeEditor.setContent(phire.curFieldValue);
             }
-            */
             jax('#field_' + fieldId).val(phire.curFieldValue);
         }
     }
@@ -239,6 +242,12 @@ phire.loadEditor = function(editor, id) {
         phire.editorIds = [{ "id" : id, "width" : w, "height" : h }];
     }
 
+    var sysPath = '';
+    if (jax.cookie.load('phire') != '') {
+        var phireCookie = jax.cookie.load('phire');
+        sysPath = phireCookie.base_path + phireCookie.app_uri;
+    }
+
     if (phire.editorIds.length > 0) {
         for (var i = 0; i < phire.editorIds.length; i++) {
             if (editor == 'ckeditor') {
@@ -246,12 +255,20 @@ phire.loadEditor = function(editor, id) {
                     CKEDITOR.replace(
                         'field_' + phire.editorIds[i].id,
                         {
-                            width          : phire.editorIds[i].width,
-                            height         : phire.editorIds[i].height,
-                            allowedContent : true
+                            width                   : phire.editorIds[i].width,
+                            height                  : phire.editorIds[i].height,
+                            allowedContent          : true,
+                            filebrowserBrowseUrl    : sysPath + '/fields/browser?editor=ckeditor&type=file',
+                            filebrowserWindowWidth  : '960',
+                            filebrowserWindowHeight : '720'
                         }
                     );
                 }
+                var eid = phire.editorIds[i].id;
+                jax('#field_' + eid).keyup(function(){
+                    console.log(jax('#field_' + eid).val());
+                    CKEDITOR.instances['field_' + eid].setData(jax('#field_' + eid).val());
+                });
             } else if (editor == 'tinymce') {
                 if (tinymce.editors['field_' + phire.editorIds[i].id] == undefined) {
                     tinymce.init(
@@ -268,15 +285,57 @@ phire.loadEditor = function(editor, id) {
                             height                : phire.editorIds[i].height,
                             relative_urls         : false,
                             convert_urls          : 0,
-                            remove_script_host    : 0
+                            remove_script_host    : 0,
+                            file_browser_callback : function(field_name, url, type, win) {
+                                tinymce.activeEditor.windowManager.open({
+                                    title  : "Asset Browser",
+                                    url    : sysPath + '/fields/browser?editor=tinymce&type=' + type,
+                                    width  : 960,
+                                    height : 720
+                                }, {
+                                    oninsert : function(url) {
+                                        win.document.getElementById(field_name).value = url;
+                                    }
+                                });
+                            }
                         }
                     );
                 } else {
                     tinymce.get('field_' + phire.editorIds[i].id).show();
                 }
+                var eid = phire.editorIds[i].id;
+                jax('#field_' + eid).keyup(function(){
+                    tinymce.editors['field_' + eid].setContent(jax('#field_' + eid).val());
+                });
             }
         }
     }
+};
+
+phire.changeEditor = function() {
+    var editor = jax(this).data('editor');
+    var id     = jax(this).data('fid');
+    if (this.innerHTML == 'Source') {
+        this.innerHTML = 'Editor';
+        if (typeof CKEDITOR !== 'undefined') {
+            content = CKEDITOR.instances['field_' + id].getData();
+            CKEDITOR.instances['field_' + id].destroy();
+        } else if (typeof tinymce !== 'undefined') {
+            content = tinymce.activeEditor.getContent();
+            tinymce.get('field_' + id).hide();
+        }
+        jax('#field_' + id).val(content);
+        jax('#field_' + id).show();
+    } else {
+        this.innerHTML = 'Source';
+        if (editor == 'ckeditor') {
+            phire.loadEditor('ckeditor', id);
+        } else if (editor == 'tinymce') {
+            phire.loadEditor('tinymce', id);
+        }
+    }
+
+    return false;
 };
 
 jax(document).ready(function(){
@@ -312,7 +371,8 @@ jax(document).ready(function(){
         for (var i = 0; i < forms.length; i++) {
             for (var name in forms[i]) {
                 if ((forms[i][name] != undefined) && (forms[i][name] != null) && (forms[i][name].name != undefined) &&
-                    (forms[i][name].name.substring(0, 6) == 'field_') && (fields.indexOf(forms[i][name].name.substring(6)) == -1)) {
+                    (typeof forms[i][name].name.substring == 'function') && (forms[i][name].name.substring(0, 6) == 'field_') &&
+                    (fields.indexOf(forms[i][name].name.substring(6)) == -1)) {
                     fields.push(forms[i][name].name.substring(6));
                     if (jax(forms[i][name]).data('path') !== null) {
                         path = jax(forms[i][name]).data('path');
@@ -345,6 +405,7 @@ jax(document).ready(function(){
         var path   = jax(editorLinks[0]).data('path');
 
         for (var i = 0; i < editorLinks.length; i++) {
+            jax(editorLinks[i]).click(phire.changeEditor);
             var id = jax(editorLinks[i]).data('fid');
             var w = Math.round(jax('#field_' + id).width());
             var h = Math.round(jax('#field_' + id).height());

@@ -135,7 +135,7 @@ class FieldValue extends AbstractModel
                         if (isset($fv->field_id)) {
                             $fieldValue = $fv->getColumns();
                             $value      = json_decode($fieldValue['value']);
-                            if (is_array($value)) {
+                            if (($field->dynamic) && is_array($value)) {
                                 if (!isset($values[$fieldId])) {
                                     $values[$fieldId] = $value;
                                 }
@@ -408,9 +408,24 @@ class FieldValue extends AbstractModel
                 $fv = Table\FieldValues::findById([$fieldId, $modelId]);
                 if (isset($fv->field_id)) {
                     $value = json_decode($fv->value, true);
-                    if (is_array($value) && isset($value[0]) && empty($value[0])) {
+                    if (is_array($value) && isset($value[0]) && is_array($value[0])) {
+                        foreach ($value as $key => $val) {
+                            if (is_array($val) && isset($val[0]) && (empty($val[0]) || ($val[0] == ' '))) {
+                                unset($val[0]);
+                                $value[$key] = array_values($val);
+                                if (count($value[$key]) == 0) {
+                                    unset($value[$key]);
+                                }
+                            }
+                        }
+                        $value = array_values($value);
+                    } else if (is_array($value) && isset($value[0]) && (empty($value[0]) || ($value[0] == ' '))) {
                         unset($value[0]);
                         $value = array_values($value);
+                    }
+                    if (count($value) == 0) {
+                        $fv->delete();
+                    } else {
                         $fv->value = json_encode($value);
                         $fv->save();
                     }

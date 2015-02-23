@@ -41,6 +41,28 @@
     padding: 5px 0 0 0;
 }
 
+#browser-container {
+    position: relative;
+    min-height: 100%;
+    overflow: auto;
+    background-color: #f4f1ed;
+}
+
+#browser-content {
+    margin: 0 auto;
+    padding: 10px 2% 50px 2%;
+    width: 96%;
+    overflow: auto;
+}
+
+.browser-title {
+    margin: 20px 20px 0 0;
+    padding: 0;
+    color: #fff;
+    float: right;
+    text-align: right;
+}
+
 .editor-link-span {
     margin: 0;
     padding: 0 0 0 5px;

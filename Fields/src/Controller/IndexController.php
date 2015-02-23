@@ -86,7 +86,7 @@ class IndexController extends AbstractController
 
         $fields = $this->application->config()['forms']['Fields\Form\Field'];
 
-        if ((null !== $field->editor) && ($field->editor != 'source')) {
+        if (null !== $field->editor) {
             $fields[1]['editor']['attributes']['style'] = 'display: block;';
         }
 
@@ -145,7 +145,7 @@ class IndexController extends AbstractController
         $json = [];
 
         // Get field values
-        if (null !== $fid) {
+        if ((null !== $fid) && (null == $marked)) {
             $fv     = Table\FieldValues::findById([$fid, $model]);
             if (!empty($fv->value)) {
                 $values = json_decode($fv->value, true);
@@ -189,17 +189,30 @@ class IndexController extends AbstractController
     }
 
     /**
-     * JSON value action method
+     * Browser action
      *
-     * @param  int    $fid
      * @return void
      */
-    public function jsonValue($fid)
+    public function browser()
     {
-        $json = ['field' => $fid];
+        if ((null !== $this->request->getQuery('editor')) && (null !== $this->request->getQuery('type'))) {
+            $field = new Model\Field();
+            if ($field->hasFiles($this->config->pagination)) {
+                $limit = $this->config->pagination;
+                $pages = new Paginator($field->getFileCount(), $limit);
+                $pages->useInput(true);
+            } else {
+                $limit = null;
+                $pages = null;
+            }
 
-        $this->response->setBody(json_encode($json, JSON_PRETTY_PRINT));
-        $this->send(200, ['Content-Type' => 'application/json']);
+            $this->prepareView('browser.phtml');
+            $this->view->title = 'Asset Browser';
+            $this->view->pages = $pages;
+            $this->view->files = $field->getAllFiles($limit, $this->request->getQuery('page'));
+
+            $this->send();
+        }
     }
 
     /**

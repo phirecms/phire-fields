@@ -38,6 +38,14 @@ return [
             'controller' => 'Fields\Controller\IndexController',
             'action'     => 'json'
         ],
+        '/fields/browser' => [
+            'controller' => 'Fields\Controller\IndexController',
+            'action'     => 'browser',
+            'acl'        => [
+                'resource'   => 'fields',
+                'permission' => 'browser'
+            ]
+        ],
         '/fields/groups[/]' => [
             'controller' => 'Fields\Controller\FieldGroupsController',
             'action'     => 'index',
