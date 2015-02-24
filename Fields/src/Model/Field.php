@@ -4,6 +4,7 @@ namespace Fields\Model;
 
 use Fields\Table;
 use Phire\Model\AbstractModel;
+use Pop\Web\Cookie;
 use Pop\File\Dir;
 
 class Field extends AbstractModel
@@ -56,17 +57,18 @@ class Field extends AbstractModel
     /**
      * Get uploaded files
      *
-     * @param  int $limit
-     * @param  int $page
+     * @param  string $dir
+     * @param  int    $limit
+     * @param  int    $page
      * @return array
      */
-    public function getAllFiles($limit = null, $page = null)
+    public function getAllFiles($dir, $limit = null, $page = null)
     {
         $files = [];
-        $dir   = new Dir($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files');
-        foreach ($dir->getFiles() as $file) {
+        $d     = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir);
+        foreach ($d->getFiles() as $file) {
             if ($file != 'index.html') {
-                $files[BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $file] = $file;
+                $files[$dir . '/' . $file] = $file;
             }
         }
 
@@ -174,12 +176,13 @@ class Field extends AbstractModel
     /**
      * Determine if list of fields has pages
      *
-     * @param  int $limit
+     * @param  string $dir
+     * @param  int    $limit
      * @return boolean
      */
-    public function hasFiles($limit)
+    public function hasFiles($dir, $limit)
     {
-        $files = $this->getAllFiles();
+        $files = $this->getAllFiles($dir);
         return (count($files) > $limit);
     }
 
@@ -196,11 +199,12 @@ class Field extends AbstractModel
     /**
      * Determine if list of fields has pages
      *
+     * @param  string $dir
      * @return int
      */
-    public function getFileCount()
+    public function getFileCount($dir)
     {
-        $files = $this->getAllFiles();
+        $files = $this->getAllFiles($dir);
         return count($files);
     }
 
@@ -212,6 +216,20 @@ class Field extends AbstractModel
      */
     public static function addModels(\Phire\Application $application)
     {
+        $path = BASE_PATH . APP_URI;
+        if ($path == '') {
+            $path = '/';
+        }
+
+        $cookie = Cookie::getInstance(['path' => $path]);
+        if (isset($cookie->phire)) {
+            $phire = (array)$cookie->phire;
+            if (!isset($phire['fields_upload_folder'])) {
+                $phire['fields_upload_folder'] = $application->module('Fields')['upload_folder'];
+                $cookie->set('phire', $phire);
+            }
+        }
+
         $modules = $application->modules();
         $roles   = \Phire\Table\UserRoles::findAll();
         foreach ($roles->rows() as $role) {
@@ -565,14 +583,43 @@ class Field extends AbstractModel
             foreach ($fValues as $fv) {
                 if (strpos($fv, '::')) {
                     $fvAry = explode('::', $fv);
-                    $fieldValues[$fvAry[0]] = $fvAry[1];
+                    if ((strpos($fvAry[0], '\Table\\') !== false) && (count($fvAry) == 3)) {
+                        $class    = $fvAry[0];
+                        $optValue = $fvAry[1];
+                        $optName  = $fvAry[2];
+                        $vals     = $class::findAll();
+                        if ($vals->count() > 0) {
+                            foreach ($vals->rows() as $v) {
+                                if (isset($v->{$optValue}) && isset($v->{$optName})) {
+                                    $fieldValues[$v->{$optValue}] = $v->{$optName};
+                                }
+                            }
+                        }
+                    } else {
+                        $fieldValues[$fvAry[0]] = $fvAry[1];
+                    }
                 } else {
                     $fieldValues[$fv] = $fv;
                 }
             }
         } else if (strpos($field->values, '::')) {
             $fvAry = explode('::', $field->values);
-            $fieldValues = [$fvAry[0] => $fvAry[1]];
+            if ((strpos($fvAry[0], '\Table\\') !== false) && (count($fvAry) == 3)) {
+                $fieldValues = [];
+                $class    = $fvAry[0];
+                $optValue = $fvAry[1];
+                $optName  = $fvAry[2];
+                $vals     = $class::findAll();
+                if ($vals->count() > 0) {
+                    foreach ($vals->rows() as $v) {
+                        if (isset($v->{$optValue}) && isset($v->{$optName})) {
+                            $fieldValues[$v->{$optValue}] = $v->{$optName};
+                        }
+                    }
+                }
+            } else {
+                $fieldValues = [$fvAry[0] => $fvAry[1]];
+            }
         } else {
             $fieldValues = $field->values;
         }

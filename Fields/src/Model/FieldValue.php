@@ -119,9 +119,10 @@ class FieldValue extends AbstractModel
      * Get all dynamic field values for the form object
      *
      * @param  \Phire\Controller\AbstractController $controller
+     * @param  \Phire\Application $application
      * @return void
      */
-    public static function getAll(\Phire\Controller\AbstractController $controller)
+    public static function getAll(\Phire\Controller\AbstractController $controller, \Phire\Application $application)
     {
         if ((!$_POST) && ($controller->hasView()) && (null !== $controller->view()->form) &&
             ((int)$controller->view()->form->id != 0) && (null !== $controller->view()->form) &&
@@ -152,7 +153,7 @@ class FieldValue extends AbstractModel
                             if ($field->type == 'file') {
                                 $rmCheckbox = new \Pop\Form\Element\CheckboxSet(
                                     'rm_field_file_' . $field->id, [$value => 'Remove <a href="' .
-                                        BASE_PATH . CONTENT_PATH . '/assets/fields/files/' .
+                                        $application->module('Fields')['upload_folder'] . '/' .
                                         $value . '" target="_blank">' . $value . '</a>?']
                                 );
                                 $controller->view()->form->insertElementAfter($key, $rmCheckbox);
@@ -190,8 +191,9 @@ class FieldValue extends AbstractModel
     {
         if (($_POST) && ($controller->hasView()) && (null !== $controller->view()->id) &&
             (null !== $controller->view()->form) && ($controller->view()->form instanceof \Pop\Form\Form)) {
-            $fields  = $controller->view()->form->getFields();
-            $modelId = $controller->view()->id;
+            $fields       = $controller->view()->form->getFields();
+            $modelId      = $controller->view()->id;
+            $uploadFolder = $application->module('Fields')['upload_folder'];
 
             foreach ($_POST as $key => $value) {
                 if ((substr($key, 0, 14) == 'rm_field_file_') && isset($value[0])) {
@@ -208,8 +210,8 @@ class FieldValue extends AbstractModel
                         if (is_array($oldValue)) {
                             if (array_search($value[0], $oldValue) !== false) {
                                 $k = array_search($value[0], $oldValue);
-                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue[$k])) {
-                                    unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue[$k]);
+                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue[$k])) {
+                                    unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue[$k]);
                                 }
                                 unset($oldValue[$k]);
                             }
@@ -221,8 +223,8 @@ class FieldValue extends AbstractModel
                                 $fv->save();
                             }
                         } else {
-                            if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue)) {
-                                unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldValue);
+                            if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/' . $oldValue)) {
+                                unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue);
                             }
                             $fv->delete();
                         }
@@ -246,12 +248,12 @@ class FieldValue extends AbstractModel
                             !empty($_FILES[$key]['tmp_name']) && !empty($_FILES[$key]['name'])) {
                             if (isset($fv->field_id)) {
                                 $oldFile = json_decode($fv->value);
-                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile)) {
-                                    unlink($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files/' . $oldFile);
+                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder .'/' . $oldFile)) {
+                                    unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldFile);
                                 }
                             }
                             $upload = new Upload(
-                                $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files',
+                                $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
                                 $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
                             );
                             $value = $upload->upload($_FILES[$key]['tmp_name'], $_FILES[$key]['name']);
@@ -378,7 +380,7 @@ class FieldValue extends AbstractModel
                 while (isset($_FILES['field_' . $fieldId . '_' . $i])) {
                     if (!empty($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'])) {
                         $upload = new Upload(
-                            $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/assets/fields/files',
+                            $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
                             $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
                         );
                         $postValue = $upload->upload($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'], $_FILES['field_' . $fieldId . '_' . $i]['name']);

@@ -196,10 +196,12 @@ class IndexController extends AbstractController
     public function browser()
     {
         if ((null !== $this->request->getQuery('editor')) && (null !== $this->request->getQuery('type'))) {
-            $field = new Model\Field();
-            if ($field->hasFiles($this->config->pagination)) {
+            $uploadFolder = $this->application->module('Fields')['upload_folder'];
+            $field        = new Model\Field();
+
+            if ($field->hasFiles($uploadFolder, $this->config->pagination)) {
                 $limit = $this->config->pagination;
-                $pages = new Paginator($field->getFileCount(), $limit);
+                $pages = new Paginator($field->getFileCount($uploadFolder), $limit);
                 $pages->useInput(true);
             } else {
                 $limit = null;
@@ -209,7 +211,7 @@ class IndexController extends AbstractController
             $this->prepareView('browser.phtml');
             $this->view->title = 'Asset Browser';
             $this->view->pages = $pages;
-            $this->view->files = $field->getAllFiles($limit, $this->request->getQuery('page'));
+            $this->view->files = $field->getAllFiles($uploadFolder, $limit, $this->request->getQuery('page'));
 
             $this->send();
         }
