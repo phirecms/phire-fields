@@ -25,7 +25,7 @@
             <tr>
                 <td><?=$group->id; ?></td>
                 <td><?=$group->name; ?></td>
-                <td><?=(($group->order) ? 'Yes' : 'No'); ?></td>
+                <td><?=$group->order; ?></td>
                 <td><?php if ($acl->isAllowed($user->role, 'field-groups', 'edit')): ?><a class="edit-link" href="<?=$phireUri . '/fields/groups/edit/' . $group->id; ?>">Edit</a><?php else: ?>&nbsp;<?php endif; ?></td>
                 <td class="text-center"><?php if ($acl->isAllowed($user->role, 'field-groups', 'remove')): ?><input type="checkbox" name="rm_groups[]" id="rm_groups<?=$i++; ?>" value="<?=$group->id; ?>" /><?php else: ?>&nbsp;<?php endif; ?></td>
             </tr>
