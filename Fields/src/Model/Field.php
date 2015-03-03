@@ -331,7 +331,7 @@ class Field extends AbstractModel
                             $form = str_replace('Model', 'Form', $model['model']);
                             if (isset($forms[$form]) && (self::isAllowed($model, $application))) {
                                 $fieldConfig = self::createFieldConfig($field);
-                                if (($field->dynamic) && ($i == 0)) {
+                                if ($field->dynamic) {
                                     if (isset($fieldConfig['label'])) {
                                         $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ');">[+]</a> ' . $fieldConfig['label'];
                                     } else {

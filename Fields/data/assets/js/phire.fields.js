@@ -77,7 +77,7 @@ phire.addField = function(fid, values) {
         var oldName = fieldName;
         var newName = oldName + '_' + cur;
         var oldObj  = jax('#' + oldName)[0];
-        var tab = (jax('#' + oldName).attrib('tabindex') != null) ?
+        var tab     = (jax('#' + oldName).attrib('tabindex') != null) ?
             (parseInt(jax('#' + oldName).attrib('tabindex')) + (1000 * cur)) : null;
 
         // If the object is a checkbox or radio set, clone the fieldset
@@ -150,7 +150,7 @@ phire.addField = function(fid, values) {
                     jax('#' + newName).val(values[fieldName][j]);
                 }
             } else {
-                if (jax('#rm_field_file_' + fid)[0] != undefined) {
+                if ((jax('#rm_field_file_' + fid)[0] != undefined) && (values[fieldName][j] != '')) {
                     var fileFieldSetParent = jax(jax('#rm_field_file_' + fid).parent()).parent();
                     var fileValues = {};
                     var filePath   = '#';
