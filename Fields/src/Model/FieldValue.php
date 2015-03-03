@@ -223,7 +223,7 @@ class FieldValue extends AbstractModel
                                 $fv->save();
                             }
                         } else {
-                            if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/' . $oldValue)) {
+                            if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue)) {
                                 unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue);
                             }
                             $fv->delete();
@@ -292,7 +292,7 @@ class FieldValue extends AbstractModel
                                 $fv->value     = $newValue;
                                 $fv->timestamp = time();
                                 $fv->save();
-                            } else if (!$field->dynamic) {
+                            } else if ((!$field->dynamic) && ($field->type != 'file')) {
                                 $fv->delete();
                             } else if (($field->dynamic) && ($field->type != 'file') && is_array($oldValue) && isset($oldValue[0])) {
                                 $oldValue[0]   = '';
