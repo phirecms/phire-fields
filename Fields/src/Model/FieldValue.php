@@ -256,7 +256,7 @@ class FieldValue extends AbstractModel
                                 $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
                                 $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
                             );
-                            $value = $upload->upload($_FILES[$key]['tmp_name'], $_FILES[$key]['name']);
+                            $value = $upload->upload($_FILES[$key]);
                         }
 
                         if (!empty($value) && ($value != ' ')) {
@@ -383,7 +383,7 @@ class FieldValue extends AbstractModel
                             $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
                             $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
                         );
-                        $postValue = $upload->upload($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'], $_FILES['field_' . $fieldId . '_' . $i]['name']);
+                        $postValue = $upload->upload($_FILES['field_' . $fieldId . '_' . $i]);
 
                         if (isset($fv->field_id)) {
                             $value = json_decode($fv->value, true);
