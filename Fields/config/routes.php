@@ -47,7 +47,7 @@ return [
             ]
         ],
         '/fields/groups[/]' => [
-            'controller' => 'Fields\Controller\FieldGroupsController',
+            'controller' => 'Fields\Controller\GroupsController',
             'action'     => 'index',
             'acl'        => [
                 'resource'   => 'field-groups',
@@ -55,7 +55,7 @@ return [
             ]
         ],
         '/fields/groups/add' => [
-            'controller' => 'Fields\Controller\FieldGroupsController',
+            'controller' => 'Fields\Controller\GroupsController',
             'action'     => 'add',
             'acl'        => [
                 'resource'   => 'field-groups',
@@ -63,7 +63,7 @@ return [
             ]
         ],
         '/fields/groups/edit/:id' => [
-            'controller' => 'Fields\Controller\FieldGroupsController',
+            'controller' => 'Fields\Controller\GroupsController',
             'action'     => 'edit',
             'acl'        => [
                 'resource'   => 'field-groups',
@@ -71,7 +71,7 @@ return [
             ]
         ],
         '/fields/groups/remove' => [
-            'controller' => 'Fields\Controller\FieldGroupsController',
+            'controller' => 'Fields\Controller\GroupsController',
             'action'     => 'remove',
             'acl'        => [
                 'resource'   => 'field-groups',

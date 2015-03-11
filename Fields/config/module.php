@@ -25,7 +25,7 @@ return [
                 ],
                 'children' => [
                     'field-groups' => [
-                        'name' => 'Field Groups',
+                        'name' => 'Groups',
                         'href' => '/fields/groups',
                         'acl'  => [
                             'resource'   => 'field-groups',
@@ -59,8 +59,8 @@ return [
             ]
         ],
         'models' => [
-            'Phire\Model\User'     => [],
-            'Phire\Model\UserRole' => []
+            'Phire\Model\User' => [],
+            'Phire\Model\Role' => []
         ],
         'history'       => 10,
         'upload_folder' => BASE_PATH . CONTENT_PATH . '/assets/fields/files',

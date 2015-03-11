@@ -231,7 +231,7 @@ class Field extends AbstractModel
         }
 
         $modules = $application->modules();
-        $roles   = \Phire\Table\UserRoles::findAll();
+        $roles   = \Phire\Table\Roles::findAll();
         foreach ($roles->rows() as $role) {
             if (isset($modules['Fields']) && isset($modules['Fields']['models']) &&
                 isset($modules['Fields']['models']['Phire\Model\User'])) {
