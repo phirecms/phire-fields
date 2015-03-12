@@ -29,6 +29,44 @@
     border-bottom: dotted 1px #aaa;
 }
 
+#field-form-field-group-3, #field-form-field-group-4, #field-form-field-group-5 {
+    margin: 10px 0 10px 0;
+    padding: 10px 0 10px 0;
+    clear: left;
+    border-top: solid 1px #ccc;
+    width: calc(100% - 220px);
+}
+
+#field-group-form-field-group-2 {
+    width: calc(100% - 220px);
+}
+
+#field-form-field-group-4 > dd, #field-form-field-group-5 > dd {
+    padding: 4px
+}
+
+#field-form-field-group-4 > dd > select, #field-form-field-group-5 > dd > select {
+    margin: 0 0 6px 0;
+    padding: 2px 4px 3px 4px;
+    height: 25px;
+    display: block;
+    min-width: 200px;
+}
+
+#field-form-field-group-4 > dd > input[type=text], #field-form-field-group-5 > dd > input[type=text] {
+    margin: 0 0 6px 0;
+    padding: 3px 4px 3px 4px;
+    height: 17px;
+    display: block;
+    font-size: 0.825em;
+    min-width: 200px;
+}
+
+#field-form-field-group-3 > dt, #field-form-field-group-3 > dd,
+#field-group-form-field-group-2 > dt, #field-group-form-field-group-2 > dd {
+    width: 99.5%;
+}
+
 #field-form > dl:first-child > dd, #field-group-form > dl:first-child > dd {
     margin: 0 0 10px 0;
 }

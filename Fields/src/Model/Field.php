@@ -408,34 +408,11 @@ class Field extends AbstractModel
 
         // Get new ones
         foreach ($_POST as $key => $value) {
-            if ((strpos($key, 'validator_new_') !== false) && ($value != '----')) {
-                $id         = substr($key, 14);
-                $valValue   = (!empty($_POST['validator_value_new_' . $id]))   ? $_POST['validator_value_new_' . $id]   : null;
-                $valMessage = (!empty($_POST['validator_message_new_' . $id])) ? $_POST['validator_message_new_' . $id] : null;
-                $validators[] = [
-                    'validator' => $value,
-                    'value'     => $valValue,
-                    'message'   => $valMessage
-                ];
-            }
-        }
-
-        // Remove old ones
-        foreach ($_POST as $key => $value) {
-            if ((strpos($key, 'rm_validators') !== false) && isset($value[0])) {
-                $id = $value[0];
-                unset($_POST['validator_cur_' . $id]);
-                unset($_POST['validator_value_cur_' . $id]);
-                unset($_POST['validator_message_cur_' . $id]);
-            }
-        }
-
-        // Save any remaining old ones
-        foreach ($_POST as $key => $value) {
-            if (strpos($key, 'validator_cur_') !== false) {
-                $id         = substr($key, 14);
-                $valValue   = (!empty($_POST['validator_value_cur_' . $id]))   ? $_POST['validator_value_cur_' . $id]   : null;
-                $valMessage = (!empty($_POST['validator_message_cur_' . $id])) ? $_POST['validator_message_cur_' . $id] : null;
+            if ((strpos($key, 'validator_') !== false) && (strpos($key, 'validator_value_') === false) &&
+                (strpos($key, 'validator_message_') === false) && ($value != '----')) {
+                $id         = substr($key, 10);
+                $valValue   = (!empty($_POST['validator_value_' . $id]))   ? $_POST['validator_value_' . $id]   : null;
+                $valMessage = (!empty($_POST['validator_message_' . $id])) ? $_POST['validator_message_' . $id] : null;
                 $validators[] = [
                     'validator' => $value,
                     'value'     => $valValue,
@@ -458,43 +435,13 @@ class Field extends AbstractModel
 
         // Get new ones
         foreach ($_POST as $key => $value) {
-            if ((strpos($key, 'model_new_') !== false) && ($value != '----')) {
-                $id        = substr($key, 10);
+            if ((strpos($key, 'model_') !== false) && (strpos($key, 'model_type_') === false) && ($value != '----')) {
+                $id        = substr($key, 6);
                 $typeField = null;
                 $typeValue = null;
 
-                if ($_POST['model_type_new_' . $id] != '----') {
-                    $type = explode('|', $_POST['model_type_new_' . $id]);
-                    $typeField = $type[0];
-                    $typeValue = $type[1];
-                }
-
-                $models[] = [
-                    'model'      => $value,
-                    'type_field' => $typeField,
-                    'type_value' => $typeValue
-                ];
-            }
-        }
-
-        // Remove old ones
-        foreach ($_POST as $key => $value) {
-            if ((strpos($key, 'rm_models') !== false) && isset($value[0])) {
-                $id = $value[0];
-                unset($_POST['model_cur_' . $id]);
-                unset($_POST['model_type_cur_' . $id]);
-            }
-        }
-
-        // Save any remaining old ones
-        foreach ($_POST as $key => $value) {
-            if (strpos($key, 'model_cur_') !== false) {
-                $id        = substr($key, 10);
-                $typeField = null;
-                $typeValue = null;
-
-                if ($_POST['model_type_cur_' . $id] != '----') {
-                    $type = explode('|', $_POST['model_type_cur_' . $id]);
+                if ($_POST['model_type_' . $id] != '----') {
+                    $type = explode('|', $_POST['model_type_' . $id]);
                     $typeField = $type[0];
                     $typeValue = $type[1];
                 }

@@ -49,10 +49,26 @@ class IndexController extends AbstractController
         $this->prepareView('add.phtml');
         $this->view->title = 'Fields : Add';
 
-        $this->view->form = new Form\Field(
-            $this->application->module('Fields')['models'], [], [],
-            $this->application->config()['forms']['Fields\Form\Field']
-        );
+        $fields = $this->application->config()['forms']['Fields\Form\Field'];
+
+        if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
+            $fields[1]['editor']['value']['ckeditor'] = 'CKEditor';
+        }
+        if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/tinymce')) {
+            $fields[1]['editor']['value']['tinymce'] = 'TinyMCE';
+        }
+
+        $groups = Table\FieldGroups::findAll();
+        foreach ($groups->rows() as $group) {
+            $fields[0]['group_id']['value'][$group->id] = $group->name;
+        }
+
+        $models = $this->application->module('Fields')['models'];
+        foreach ($models as $model => $type) {
+            $fields[4]['model_1']['value'][$model] = $model;
+        }
+
+        $this->view->form = new Form\Field($fields);
 
         if ($this->request->isPost()) {
             $this->view->form->addFilter('strip_tags')
@@ -86,17 +102,30 @@ class IndexController extends AbstractController
 
         $fields = $this->application->config()['forms']['Fields\Form\Field'];
 
+        if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
+            $fields[1]['editor']['value']['ckeditor'] = 'CKEditor';
+        }
+        if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/tinymce')) {
+            $fields[1]['editor']['value']['tinymce'] = 'TinyMCE';
+        }
         if (null !== $field->editor) {
             $fields[1]['editor']['attributes']['style'] = 'display: block;';
+        }
+
+        $groups = Table\FieldGroups::findAll();
+        foreach ($groups->rows() as $group) {
+            $fields[0]['group_id']['value'][$group->id] = $group->name;
+        }
+
+        $models = $this->application->module('Fields')['models'];
+        foreach ($models as $model => $type) {
+            $fields[4]['model_1']['value'][$model] = $model;
         }
 
         $this->prepareView('edit.phtml');
         $this->view->title = 'Fields : Edit : ' . $field->name;
 
-        $this->view->form = new Form\Field(
-            $this->application->module('Fields')['models'], $field->validators,
-            $field->models, $fields
-        );
+        $this->view->form = new Form\Field($fields);
         $this->view->form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
              ->setFieldValues($field->toArray());
 
@@ -135,17 +164,24 @@ class IndexController extends AbstractController
     /**
      * JSON models action method
      *
-     * @param  string $model
-     * @param  int    $fid
-     * @param  mixed  $marked
+     * @param  mixed $model
+     * @param  mixed $fid
+     * @param  mixed $marked
      * @return void
      */
-    public function json($model, $fid = null, $marked = null)
+    public function json($model = null, $fid = null, $marked = null)
     {
         $json = [];
 
-        // Get field values
-        if ((null !== $fid) && (null == $marked)) {
+        // Get field validators and models
+        if (($model == 0) && (null !== $fid)) {
+            $field = Table\Fields::findById($fid);
+            if (isset($field->id)) {
+                $json['validators'] = (null != $field->validators) ? unserialize($field->validators) : [];
+                $json['models'] = (null != $field->models) ? unserialize($field->models) : [];
+            }
+            // Get field values
+        } else if ((null !== $fid) && (null == $marked)) {
             $fv     = Table\FieldValues::findById([$fid, $model]);
             if (!empty($fv->value)) {
                 $values = json_decode($fv->value, true);
@@ -159,13 +195,13 @@ class IndexController extends AbstractController
         // Get field history values
         } else if ((null !== $fid) && (null !== $marked)) {
             $value = '';
-            $fv    = Table\FieldValues::findById([$fid, $model]);
+            $fv = Table\FieldValues::findById([$fid, $model]);
 
             if (isset($fv->field_id) && (null !== $fv->history)) {
                 $history = json_decode($fv->history, true);
                 if (isset($history[$marked])) {
                     $value = $history[$marked];
-                    $f     = Table\Fields::findById($fid);
+                    $f = Table\Fields::findById($fid);
                     if ($f->encrypt) {
                         $value = (new \Pop\Crypt\Mcrypt())->decrypt($value);
                     }
@@ -173,7 +209,7 @@ class IndexController extends AbstractController
             }
             $json['fieldId'] = $fid;
             $json['modelId'] = $model;
-            $json['value']   = $value;
+            $json['value'] = $value;
         // Get field models
         } else {
             $model = rawurldecode($model);

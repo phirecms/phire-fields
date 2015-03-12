@@ -16,42 +16,87 @@ phire.toggleEditor = function(sel) {
     }
 };
 
-phire.addValidator = function() {
-    phire.validatorCount++;
+phire.addValidator = function(vals) {
+    if (vals == null) {
+        vals = [{
+            "validator" : '',
+            "value"     : '',
+            "message"   : ''
+        }];
+    }
 
-    // Add validator select field
-    jax('#validator_new_1').clone({
-        "name" : 'validator_new_' + phire.validatorCount,
-        "id"   : 'validator_new_' + phire.validatorCount
-    }).appendTo(jax('#validator_new_1').parent());
+    for (var i = 0; i < vals.length; i++) {
+        phire.validatorCount++;
 
-    // Add validator value text field
-    jax('#validator_value_new_1').clone({
-        "name" : 'validator_value_new_' + phire.validatorCount,
-        "id"   : 'validator_value_new_' + phire.validatorCount
-    }).appendTo(jax('#validator_value_new_1').parent());
+        // Add validator select field
+        jax('#validator_1').clone({
+            "name": 'validator_' + phire.validatorCount,
+            "id": 'validator_' + phire.validatorCount
+        }).appendTo(jax('#validator_1').parent());
 
-    // Add validator message text field
-    jax('#validator_message_new_1').clone({
-        "name" : 'validator_message_new_' + phire.validatorCount,
-        "id"   : 'validator_message_new_' + phire.validatorCount
-    }).appendTo(jax('#validator_message_new_1').parent());
+        if ((vals[i].validator != '') && (vals[i].validator != null)) {
+            jax('#validator_' + phire.validatorCount).val(vals[i].validator);
+        }
+
+        // Add validator value text field
+        jax('#validator_value_1').clone({
+            "name": 'validator_value_' + phire.validatorCount,
+            "id": 'validator_value_' + phire.validatorCount
+        }).appendTo(jax('#validator_value_1').parent());
+
+        if ((vals[i].value != '') && (vals[i].value != null)) {
+            jax('#validator_value_' + phire.validatorCount).val(vals[i].value);
+        }
+
+        // Add validator message text field
+        jax('#validator_message_1').clone({
+            "name": 'validator_message_' + phire.validatorCount,
+            "id": 'validator_message_' + phire.validatorCount
+        }).appendTo(jax('#validator_message_1').parent());
+
+        if ((vals[i].message != '') && (vals[i].message != null)) {
+            jax('#validator_message_' + phire.validatorCount).val(vals[i].message);
+        }
+    }
+
+    return false;
 };
 
-phire.addModel = function() {
-    phire.modelCount++;
+phire.addModel = function(vals) {
+    if (vals == null) {
+        vals = [{
+            "model"      : '',
+            "type_field" : '',
+            "type_value" : ''
+        }];
+    }
+    for (var i = 0; i < vals.length; i++) {
+        phire.modelCount++;
 
-    // Add model select field
-    jax('#model_new_1').clone({
-        "name" : 'model_new_' + phire.modelCount,
-        "id"   : 'model_new_' + phire.modelCount
-    }).appendTo(jax('#model_new_1').parent());
+        // Add model select field
+        jax('#model_1').clone({
+            "name": 'model_' + phire.modelCount,
+            "id": 'model_' + phire.modelCount
+        }).appendTo(jax('#model_1').parent());
 
-    // Add model type text field
-    jax('#model_type_new_1').clone({
-        "name" : 'model_type_new_' + phire.modelCount,
-        "id"   : 'model_type_new_' + phire.modelCount
-    }).appendTo(jax('#model_type_new_1').parent());
+        if ((vals[i].model != '') && (vals[i].model != null)) {
+            jax('#model_' + phire.modelCount).val(vals[i].model);
+        }
+
+        // Add model type text field
+        jax('#model_type_1').clone({
+            "name": 'model_type_' + phire.modelCount,
+            "id": 'model_type_' + phire.modelCount
+        }).appendTo(jax('#model_type_1').parent());
+
+        phire.getModelTypes(jax('#model_' + phire.modelCount)[0]);
+
+        if ((vals[i].type_field != '') && (vals[i].type_field != null) && (vals[i].type_value != '') && (vals[i].type_value != null)) {
+            jax('#model_type_' + phire.modelCount).val(vals[i].type_field + '|' + vals[i].type_value);
+        }
+    }
+
+    return false;
 };
 
 phire.addField = function(fid, values) {
@@ -175,22 +220,25 @@ phire.addField = function(fid, values) {
     return false;
 };
 
-phire.getModelTypes = function(sel, path, cur) {
+phire.getModelTypes = function(sel) {
     if (jax(sel).val() != '----') {
-        var cur   = (cur) ? 'cur' : 'new';
         var id    = sel.id.substring(sel.id.lastIndexOf('_') + 1);
-        var opts  = jax('#model_type_' + cur + '_' + id + ' > option').toArray();
+        var opts  = jax('#model_type_' + id + ' > option').toArray();
         var start = opts.length - 1;
         for (var i = start; i >= 0; i--) {
             jax(opts[i]).remove();
         }
-        jax('#model_type_' + cur + '_' + id).append('option', {"value" : '----'}, '----');
+        jax('#model_type_' + id).append('option', {"value" : '----'}, '----');
 
-        if (jax(sel).val() != '----') {
+        if ((jax(sel).val() != '----') && (jax.cookie.load('phire') != '')) {
+
+            var phireCookie = jax.cookie.load('phire');
+            var path = phireCookie.base_path + phireCookie.app_uri;
+
             var json = jax.get(path + '/fields/json/' + jax(sel).val());
             if (json.length > 0) {
                 for (var i = 0; i < json.length; i++) {
-                    jax('#model_type_' + cur + '_' + id).append('option', {
+                    jax('#model_type_' + id).append('option', {
                         "value" : json[i].type_field + '|' + json[i].type_value
                     }, json[i].type_name);
                 }
@@ -435,6 +483,37 @@ jax(document).ready(function(){
                     };
                     head.appendChild(script);
                     break;
+            }
+        }
+    }
+
+    if ((jax('#field-form')[0] != undefined) && (jax('#id').val() != 0)) {
+        if (jax.cookie.load('phire') != '') {
+            var phireCookie = jax.cookie.load('phire');
+            var json = jax.get(phireCookie.base_path + phireCookie.app_uri + '/fields/json/0/' + jax('#id').val());
+            if (json.validators.length > 0) {
+                jax('#validator_1').val(json.validators[0].validator);
+                if (json.validators[0].value != null) {
+                    jax('#validator_value_1').val(json.validators[0].value);
+                }
+                if (json.validators[0].message != null) {
+                    jax('#validator_message_1').val(json.validators[0].message);
+                }
+                json.validators.shift();
+                if (json.validators.length > 0) {
+                    phire.addValidator(json.validators);
+                }
+            }
+            if (json.models.length > 0) {
+                jax('#model_1').val(json.models[0].model);
+                phire.getModelTypes(jax('#model_1')[0]);
+                if ((json.models[0].type_field != null) && (json.models[0].type_value != null)) {
+                    jax('#model_type_1').val(json.models[0].type_field + '|' + json.models[0].type_value);
+                }
+                json.models.shift();
+                if (json.models.length > 0) {
+                    phire.addModel(json.models);
+                }
             }
         }
     }
