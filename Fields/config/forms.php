@@ -196,7 +196,7 @@ return [
             ],
             'model_type_1' => [
                 'type'       => 'select',
-                'value'      => ['----' => '-']
+                'value'      => ['----' => '----']
             ]
         ]
     ],

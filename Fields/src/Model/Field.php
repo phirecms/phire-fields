@@ -148,14 +148,30 @@ class Field extends AbstractModel
      * Remove a field
      *
      * @param  array $fields
+     * @param  string $dir
      * @return void
      */
-    public function remove(array $fields)
+    public function remove(array $fields, $dir)
     {
         if (isset($fields['rm_fields'])) {
             foreach ($fields['rm_fields'] as $id) {
                 $field = Table\Fields::findById((int)$id);
                 if (isset($field->id)) {
+                    if ($field->type == 'file') {
+                        $values = Table\FieldValues::findBy(['field_id' => $field->id]);
+                        foreach ($values->rows() as $value) {
+                            $val = json_decode($value->value);
+                            if (is_array($val)) {
+                                foreach ($val as $v) {
+                                    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $dir . '/' . $v)) {
+                                        unlink($_SERVER['DOCUMENT_ROOT'] . $dir . '/' . $v);
+                                    }
+                                }
+                            } else if (file_exists($_SERVER['DOCUMENT_ROOT'] . $dir . '/' . $val)) {
+                                unlink($_SERVER['DOCUMENT_ROOT'] . $dir . '/' . $val);
+                            }
+                        }
+                    }
                     $field->delete();
                 }
             }
@@ -279,9 +295,11 @@ class Field extends AbstractModel
 
                         if ($field->dynamic) {
                             if (isset($fieldConfig['label'])) {
-                                $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ');">[+]</a> ' . $fieldConfig['label'];
+                                $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' .
+                                    $field->id . ');">[+]</a> ' . $fieldConfig['label'];
                             } else {
-                                $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ');">[+]</a>';
+                                $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' .
+                                    $field->id . ');">[+]</a>';
                             }
                             if (isset($fieldConfig['attributes'])) {
                                 $fieldConfig['attributes']['data-path'] = BASE_PATH . APP_URI;
@@ -333,9 +351,11 @@ class Field extends AbstractModel
                                 $fieldConfig = self::createFieldConfig($field);
                                 if ($field->dynamic) {
                                     if (isset($fieldConfig['label'])) {
-                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ');">[+]</a> ' . $fieldConfig['label'];
+                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' .
+                                            $field->id . ');">[+]</a> ' . $fieldConfig['label'];
                                     } else {
-                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' . $field->id . ']);">[+]</a>';
+                                        $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' .
+                                            $field->id . ']);">[+]</a>';
                                     }
                                 }
 

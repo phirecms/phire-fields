@@ -156,7 +156,7 @@ class IndexController extends AbstractController
     {
         if ($this->request->isPost()) {
             $field = new Model\Field();
-            $field->remove($this->request->getPost());
+            $field->remove($this->request->getPost(), $this->application->module('Fields')['upload_folder']);
         }
         $this->redirect(BASE_PATH . APP_URI . '/fields?removed=' . time());
     }
@@ -178,11 +178,11 @@ class IndexController extends AbstractController
             $field = Table\Fields::findById($fid);
             if (isset($field->id)) {
                 $json['validators'] = (null != $field->validators) ? unserialize($field->validators) : [];
-                $json['models'] = (null != $field->models) ? unserialize($field->models) : [];
+                $json['models']     = (null != $field->models) ? unserialize($field->models) : [];
             }
-            // Get field values
+        // Get field values
         } else if ((null !== $fid) && (null == $marked)) {
-            $fv     = Table\FieldValues::findById([$fid, $model]);
+            $fv = Table\FieldValues::findById([$fid, $model]);
             if (!empty($fv->value)) {
                 $values = json_decode($fv->value, true);
                 if (is_array($values)) {
@@ -209,10 +209,10 @@ class IndexController extends AbstractController
             }
             $json['fieldId'] = $fid;
             $json['modelId'] = $model;
-            $json['value'] = $value;
+            $json['value']   = $value;
         // Get field models
         } else {
-            $model = rawurldecode($model);
+            $model  = rawurldecode($model);
             $models = $this->application->module('Fields')['models'];
 
             if (isset($models[$model])) {
@@ -245,7 +245,7 @@ class IndexController extends AbstractController
             }
 
             $this->prepareView('browser.phtml');
-            $this->view->title = 'Asset Browser';
+            $this->view->title = 'File Browser';
             $this->view->pages = $pages;
             $this->view->files = $field->getAllFiles($uploadFolder, $limit, $this->request->getQuery('page'));
 

@@ -4,8 +4,8 @@
 
 phire.validatorCount = 1;
 phire.modelCount     = 1;
-phire.curFieldValue  = null;
 phire.curFields      = {};
+phire.curFieldValue  = {};
 phire.editorIds      = [];
 
 phire.toggleEditor = function(sel) {
@@ -247,25 +247,26 @@ phire.getModelTypes = function(sel) {
     }
 };
 
-phire.changeHistory = function(sel, path) {
+phire.changeHistory = function(sel) {
     var ids     = sel.id.substring(sel.id.indexOf('_') + 1).split('_');
     var modelId = ids[0];
     var fieldId = ids[1];
     var marked  = jax('#' + sel.id + ' > option:selected').val();
 
-    if ((phire.curFieldValue == null) && (jax('#field_' + fieldId)[0] != undefined)) {
-        phire.curFieldValue = jax('#field_' + fieldId).val();
+    if ((phire.curFieldValue['field_' + fieldId] == undefined) && (jax('#field_' + fieldId)[0] != undefined)) {
+        phire.curFieldValue['field_' + fieldId] = jax('#field_' + fieldId).val();
     }
 
-    if (marked != 0) {
-        var j = jax.json.parse(path + '/fields/json/' + modelId + '/' + fieldId + '/' + marked);
+    if ((marked != 0) && (jax.cookie.load('phire') != '')) {
+        var phireCookie = jax.cookie.load('phire');
+        var j = jax.json.parse(phireCookie.base_path + phireCookie.app_uri + '/fields/json/' + modelId + '/' + fieldId + '/' + marked);
         if (jax('#field_' + j.fieldId)[0] != undefined) {
             if (typeof CKEDITOR !== 'undefined') {
                 if (CKEDITOR.instances['field_' + j.fieldId] != undefined) {
                     CKEDITOR.instances['field_' + j.fieldId].setData(j.value);
                 }
             } else if (typeof tinymce !== 'undefined') {
-                tinymce.activeEditor.setContent(j.value);
+                tinymce.editors['field_' + j.fieldId].setContent(j.value);
             }
             jax('#field_' + j.fieldId).val(j.value);
         }
@@ -273,12 +274,12 @@ phire.changeHistory = function(sel, path) {
         if (jax('#field_' + fieldId)[0] != undefined) {
             if (typeof CKEDITOR !== 'undefined') {
                 if (CKEDITOR.instances['field_' + fieldId] != undefined) {
-                    CKEDITOR.instances['field_' + fieldId].setData(phire.curFieldValue);
+                    CKEDITOR.instances['field_' + fieldId].setData(phire.curFieldValue['field_' + fieldId]);
                 }
             } else if (typeof tinymce !== 'undefined') {
-                tinymce.activeEditor.setContent(phire.curFieldValue);
+                tinymce.editors['field_' + fieldId].setContent(phire.curFieldValue['field_' + fieldId]);
             }
-            jax('#field_' + fieldId).val(phire.curFieldValue);
+            jax('#field_' + fieldId).val(phire.curFieldValue['field_' + fieldId]);
         }
     }
 };
@@ -335,8 +336,8 @@ phire.loadEditor = function(editor, id) {
                             convert_urls          : 0,
                             remove_script_host    : 0,
                             file_browser_callback : function(field_name, url, type, win) {
-                                tinymce.activeEditor.windowManager.open({
-                                    title  : "Asset Browser",
+                                tinymce.editors['field_' + phire.editorIds[i].id].windowManager.open({
+                                    title  : "File Browser",
                                     url    : sysPath + '/fields/browser?editor=tinymce&type=' + type,
                                     width  : 960,
                                     height : 720
@@ -366,10 +367,10 @@ phire.changeEditor = function() {
     if (this.innerHTML == 'Source') {
         this.innerHTML = 'Editor';
         if (typeof CKEDITOR !== 'undefined') {
-            content = CKEDITOR.instances['field_' + id].getData();
+            var content = CKEDITOR.instances['field_' + id].getData();
             CKEDITOR.instances['field_' + id].destroy();
         } else if (typeof tinymce !== 'undefined') {
-            content = tinymce.activeEditor.getContent();
+            var content = tinymce.editors['field_' + id].getContent();
             tinymce.get('field_' + id).hide();
         }
         jax('#field_' + id).val(content);

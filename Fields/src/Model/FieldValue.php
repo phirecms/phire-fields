@@ -169,7 +169,7 @@ class FieldValue extends AbstractModel
 
                                 $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
                                 $revision->setLabel('Select Revision');
-                                $revision->setAttribute('onchange', 'phire.changeHistory(this, \'' . BASE_PATH . APP_URI . '\');');
+                                $revision->setAttribute('onchange', 'phire.changeHistory(this);');
                                 $controller->view()->form->insertElementAfter($key, $revision);
                             }
                             $controller->view()->form->{$key} = $value;
