@@ -148,12 +148,15 @@ class Field extends AbstractModel
      * Remove a field
      *
      * @param  array $fields
-     * @param  string $dir
+     * @param  array $config
      * @return void
      */
-    public function remove(array $fields, $dir)
+    public function remove(array $fields, array $config)
     {
         if (isset($fields['rm_fields'])) {
+            $uploadFolder = $config['upload_folder'];
+            $mediaLibrary = $config['media_library'];
+
             foreach ($fields['rm_fields'] as $id) {
                 $field = Table\Fields::findById((int)$id);
                 if (isset($field->id)) {
@@ -163,12 +166,12 @@ class Field extends AbstractModel
                             $val = json_decode($value->value);
                             if (is_array($val)) {
                                 foreach ($val as $v) {
-                                    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $dir . '/' . $v)) {
-                                        unlink($_SERVER['DOCUMENT_ROOT'] . $dir . '/' . $v);
+                                    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $v)) {
+                                        unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $v);
                                     }
                                 }
-                            } else if (file_exists($_SERVER['DOCUMENT_ROOT'] . $dir . '/' . $val)) {
-                                unlink($_SERVER['DOCUMENT_ROOT'] . $dir . '/' . $val);
+                            } else if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $val)) {
+                                unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $val);
                             }
                         }
                     }
@@ -242,8 +245,11 @@ class Field extends AbstractModel
             $phire = (array)$cookie->phire;
             if (!isset($phire['fields_upload_folder'])) {
                 $phire['fields_upload_folder'] = $application->module('Fields')['upload_folder'];
-                $cookie->set('phire', $phire);
             }
+            if (!isset($phire['fields_media_library'])) {
+                $phire['fields_media_library'] = $application->module('Fields')['media_library'];
+            }
+            $cookie->set('phire', $phire);
         }
 
         $modules = $application->modules();

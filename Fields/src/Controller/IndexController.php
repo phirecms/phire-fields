@@ -156,7 +156,7 @@ class IndexController extends AbstractController
     {
         if ($this->request->isPost()) {
             $field = new Model\Field();
-            $field->remove($this->request->getPost(), $this->application->module('Fields')['upload_folder']);
+            $field->remove($this->request->getPost(), $this->application->module('Fields'));
         }
         $this->redirect(BASE_PATH . APP_URI . '/fields?removed=' . time());
     }
