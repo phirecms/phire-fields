@@ -46,6 +46,10 @@ return [
                 'action' => 'Fields\Model\Field::addFields'
             ],
             [
+                'name'   => 'app.dispatch.pre',
+                'action' => 'Fields\Model\FieldValue::removeMedia'
+            ],
+            [
                 'name'   => 'app.send',
                 'action' => 'Fields\Model\FieldValue::getAll'
             ],
@@ -62,10 +66,11 @@ return [
             'Phire\Model\User' => [],
             'Phire\Model\Role' => []
         ],
-        'history'       => 10,
-        'upload_folder' => BASE_PATH . CONTENT_PATH . '/assets/fields/files',
-        'media_library' => null,
-        'max_size'      => 0,
-        'allowed_types' => null
+        'history'          => 10,
+        'upload_folder'    => BASE_PATH . CONTENT_PATH . '/assets/fields/files',
+        'media_library'    => 'uploads',
+        'max_size'         => 0,
+        'disallowed_types' => null,
+        'allowed_types'    => null
     ]
 ];

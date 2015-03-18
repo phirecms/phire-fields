@@ -65,9 +65,10 @@ class Field extends AbstractModel
     public function getAllFiles($dir, $limit = null, $page = null)
     {
         $files = [];
-        $d     = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir);
+        $d     = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir, false, false, false);
+
         foreach ($d->getFiles() as $file) {
-            if ($file != 'index.html') {
+            if (($file != 'index.html')) {
                 $files[$dir . '/' . $file] = $file;
             }
         }

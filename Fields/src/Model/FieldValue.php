@@ -181,6 +181,51 @@ class FieldValue extends AbstractModel
     }
 
     /**
+     * Remove any media files
+     *
+     * @param  \Phire\Application $application
+     * @return void
+     */
+    public static function removeMedia(\Phire\Application $application)
+    {
+        $uploadFolder = $application->module('Fields')['upload_folder'];
+        $mediaLibrary = $application->module('Fields')['media_library'];
+        if (($_POST) && isset($_POST['rm_media']) && (null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+            $media = new \Media\Model\Media();
+            foreach ($_POST['rm_media'] as $mid) {
+                $media->getById($mid);
+                if (isset($media->id) && !empty($media->file)) {
+                    $sql = Table\FieldValues::getSql();
+                    $sql->select()->where('value LIKE :value');
+                    $fv = Table\FieldValues::execute((string)$sql, ['value' => '%"' . $media->file . '"%']);
+                    if ($fv->count() > 0) {
+                        if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $media->file)) {
+                            unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $media->file);
+                        }
+                        foreach ($fv->rows() as $val) {
+                            $v = json_decode($val->value);
+                            if (is_array($v) && in_array($media->file, $v)) {
+                                unset($v[array_search($media->file, $v)]);
+                                $f = Table\FieldValues::findById([$val->field_id, $val->model_id]);
+                                if (count($v) > 0) {
+                                    $v = array_values($v);
+                                    $f->value = json_encode($v);
+                                    $f->save();
+                                } else {
+                                    $f->delete();
+                                }
+                            } else {
+                                $f = Table\FieldValues::findById([$val->field_id, $val->model_id]);
+                                $f->delete();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Save dynamic field values
      *
      * @param  \Phire\Controller\AbstractController $controller
@@ -194,6 +239,7 @@ class FieldValue extends AbstractModel
             $fields       = $controller->view()->form->getFields();
             $modelId      = $controller->view()->id;
             $uploadFolder = $application->module('Fields')['upload_folder'];
+            $mediaLibrary = $application->module('Fields')['media_library'];
 
             foreach ($_POST as $key => $value) {
                 if ((substr($key, 0, 14) == 'rm_field_file_') && isset($value[0])) {
@@ -212,6 +258,14 @@ class FieldValue extends AbstractModel
                                 $k = array_search($value[0], $oldValue);
                                 if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue[$k])) {
                                     unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue[$k]);
+                                    if ((null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+                                        $media = new \Media\Model\Media();
+                                        $media->getByFile($oldValue[$k]);
+
+                                        if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
+                                            $media->remove(['rm_media'=> [$media->id]]);
+                                        }
+                                    }
                                 }
                                 unset($oldValue[$k]);
                             }
@@ -225,6 +279,14 @@ class FieldValue extends AbstractModel
                         } else {
                             if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue)) {
                                 unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue);
+                                if ((null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+                                    $media = new \Media\Model\Media();
+                                    $media->getByFile($oldValue);
+
+                                    if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
+                                        $media->remove(['rm_media'=> [$media->id]]);
+                                    }
+                                }
                             }
                             $fv->delete();
                         }
@@ -252,11 +314,35 @@ class FieldValue extends AbstractModel
                                     unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldFile);
                                 }
                             }
-                            $upload = new Upload(
-                                $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
-                                $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
-                            );
-                            $value = $upload->upload($_FILES[$key]);
+
+                            if ((null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+                                $library = new \Media\Model\MediaLibrary();
+                                $library->getByFolder($mediaLibrary);
+                                if (isset($library->id)) {
+                                    $settings = $library->getSettings();
+                                    $mediaUpload = new Upload(
+                                        $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/' . $library->folder,
+                                        $settings['max_filesize'], $settings['disallowed_types'], $settings['allowed_types']
+                                    );
+                                    if ($mediaUpload->test($_FILES[$key])) {
+                                        $media = new \Media\Model\Media();
+                                        $media->save($_FILES[$key], ['library_id' => $library->id]);
+                                        $value = $media->file;
+                                            copy(
+                                            $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/' . $library->folder . '/' . $media->file,
+                                            $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $media->file
+                                        );
+                                    }
+                                }
+                            } else {
+                                $upload = new Upload(
+                                    $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
+                                    $application->module('Fields')['max_size'],
+                                    $application->module('Fields')['disallowed_types'],
+                                    $application->module('Fields')['allowed_types']
+                                );
+                                $value = $upload->upload($_FILES[$key]);
+                            }
                         }
 
                         if (!empty($value) && ($value != ' ')) {
@@ -379,11 +465,32 @@ class FieldValue extends AbstractModel
 
                 while (isset($_FILES['field_' . $fieldId . '_' . $i])) {
                     if (!empty($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'])) {
-                        $upload = new Upload(
-                            $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
-                            $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
-                        );
-                        $postValue = $upload->upload($_FILES['field_' . $fieldId . '_' . $i]);
+                        if ((null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+                            $library = new \Media\Model\MediaLibrary();
+                            $library->getByFolder($mediaLibrary);
+                            if (isset($library->id)) {
+                                $settings = $library->getSettings();
+                                $mediaUpload = new Upload(
+                                    $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/' . $library->folder,
+                                    $settings['max_filesize'], $settings['disallowed_types'], $settings['allowed_types']
+                                );
+                                if ($mediaUpload->test($_FILES['field_' . $fieldId . '_' . $i])) {
+                                    $media = new \Media\Model\Media();
+                                    $media->save($_FILES['field_' . $fieldId . '_' . $i], ['library_id' => $library->id]);
+                                    $postValue = $media->file;
+                                    copy(
+                                        $_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/' . $library->folder . '/' . $media->file,
+                                        $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $media->file
+                                    );
+                                }
+                            }
+                        } else {
+                            $upload = new Upload(
+                                $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
+                                $application->module('Fields')['max_size'], $application->module('Fields')['allowed_types']
+                            );
+                            $postValue = $upload->upload($_FILES['field_' . $fieldId . '_' . $i]);
+                        }
 
                         if (isset($fv->field_id)) {
                             $value = json_decode($fv->value, true);
