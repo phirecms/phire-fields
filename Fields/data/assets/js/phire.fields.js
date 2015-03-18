@@ -336,7 +336,7 @@ phire.loadEditor = function(editor, id) {
                             convert_urls          : 0,
                             remove_script_host    : 0,
                             file_browser_callback : function(field_name, url, type, win) {
-                                tinymce.editors['field_' + phire.editorIds[i].id].windowManager.open({
+                                tinymce.activeEditor.windowManager.open({
                                     title  : "File Browser",
                                     url    : sysPath + '/fields/browser?editor=tinymce&type=' + type,
                                     width  : 960,
