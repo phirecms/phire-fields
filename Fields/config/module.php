@@ -68,7 +68,7 @@ return [
         ],
         'history'          => 10,
         'upload_folder'    => BASE_PATH . CONTENT_PATH . '/assets/fields/files',
-        'media_library'    => 'uploads',
+        'media_library'    => null,
         'max_size'         => 0,
         'disallowed_types' => null,
         'allowed_types'    => null
