@@ -63,7 +63,7 @@ class IndexController extends AbstractController
             $fields[0]['group_id']['value'][$group->id] = $group->name;
         }
 
-        $models = $this->application->module('Fields')['models'];
+        $models = $this->application->module('Fields')->config()['models'];
         foreach ($models as $model => $type) {
             $fields[4]['model_1']['value'][$model] = $model;
         }
@@ -117,7 +117,7 @@ class IndexController extends AbstractController
             $fields[0]['group_id']['value'][$group->id] = $group->name;
         }
 
-        $models = $this->application->module('Fields')['models'];
+        $models = $this->application->module('Fields')->config()['models'];
         foreach ($models as $model => $type) {
             $fields[4]['model_1']['value'][$model] = $model;
         }
@@ -156,7 +156,7 @@ class IndexController extends AbstractController
     {
         if ($this->request->isPost()) {
             $field = new Model\Field();
-            $field->remove($this->request->getPost(), $this->application->module('Fields'));
+            $field->remove($this->request->getPost(), $this->application->module('Fields')->config());
         }
         $this->redirect(BASE_PATH . APP_URI . '/fields?removed=' . time());
     }
@@ -178,7 +178,7 @@ class IndexController extends AbstractController
             $field = Table\Fields::findById($fid);
             if (isset($field->id)) {
                 $json['validators'] = (null != $field->validators) ? unserialize($field->validators) : [];
-                $json['models']     = (null != $field->models) ? unserialize($field->models) : [];
+                $json['models']     = (null != $field->models)     ? unserialize($field->models)     : [];
             }
         // Get field values
         } else if ((null !== $fid) && (null == $marked)) {
@@ -213,7 +213,7 @@ class IndexController extends AbstractController
         // Get field models
         } else {
             $model  = rawurldecode($model);
-            $models = $this->application->module('Fields')['models'];
+            $models = $this->application->module('Fields')->config()['models'];
 
             if (isset($models[$model])) {
                 $json = $models[$model];
@@ -232,7 +232,7 @@ class IndexController extends AbstractController
     public function browser()
     {
         if ((null !== $this->request->getQuery('editor')) && (null !== $this->request->getQuery('type'))) {
-            $uploadFolder = $this->application->module('Fields')['upload_folder'];
+            $uploadFolder = $this->application->module('Fields')->config()['upload_folder'];
             $field        = new Model\Field();
 
             if ($field->hasFiles($uploadFolder, $this->config->pagination)) {

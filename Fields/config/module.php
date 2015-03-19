@@ -38,28 +38,28 @@ return [
         'events' => [
             [
                 'name'     => 'app.route.post',
-                'action'   => 'Fields\Model\Field::addModels',
+                'action'   => 'Fields\Event\Field::addModels',
                 'priority' => 0
             ],
             [
                 'name'   => 'app.dispatch.pre',
-                'action' => 'Fields\Model\Field::addFields'
+                'action' => 'Fields\Event\Field::addFields'
             ],
             [
                 'name'   => 'app.dispatch.pre',
-                'action' => 'Fields\Model\FieldValue::removeMedia'
+                'action' => 'Fields\Event\FieldValue::removeMedia'
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Model\FieldValue::getAll'
+                'action' => 'Fields\Event\FieldValue::getAll'
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Model\FieldValue::save'
+                'action' => 'Fields\Event\FieldValue::save'
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Model\FieldValue::delete'
+                'action' => 'Fields\Event\FieldValue::delete'
             ]
         ],
         'models' => [
