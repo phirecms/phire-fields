@@ -3,7 +3,7 @@
 namespace Fields\Event;
 
 use Fields\Table;
-use Phire\Application;
+use Pop\Application;
 use Pop\Web\Cookie;
 
 class Field
@@ -51,11 +51,9 @@ class Field
 
         foreach ($modules as $module => $config) {
             if (($module != 'Fields') && isset($config['models'])) {
-                $modules['Fields']->config()['models'] = array_merge($config['models'], $modules['Fields']->config()['models']);
+                $application->module('Fields')->mergeConfig(['models' => $config['models']]);
             }
         }
-
-        $application->module('Fields')->mergeConfig($modules['Fields']);
     }
 
     /**

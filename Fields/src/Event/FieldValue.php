@@ -3,7 +3,7 @@
 namespace Fields\Event;
 
 use Fields\Table;
-use Phire\Application;
+use Pop\Application;
 use Phire\Controller\AbstractController;
 use Pop\Crypt\Mcrypt;
 use Pop\File\Upload;
@@ -14,8 +14,8 @@ class FieldValue
     /**
      * Get all dynamic field values for the form object
      *
-     * @param  \Phire\Controller\AbstractController $controller
-     * @param  \Phire\Application $application
+     * @param  AbstractController $controller
+     * @param  Application        $application
      * @return void
      */
     public static function getAll(AbstractController $controller, Application $application)
@@ -125,7 +125,7 @@ class FieldValue
      * Save dynamic field values
      *
      * @param  AbstractController $controller
-     * @param  Application $application
+     * @param  Application        $application
      * @return void
      */
     public static function save(AbstractController $controller, Application $application)
