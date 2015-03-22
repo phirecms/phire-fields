@@ -10,12 +10,12 @@ class Field
 {
 
     /**
-     * Add user roles to models of the module config for the application
+     * Bootstrap the module
      *
      * @param  Application $application
      * @return void
      */
-    public static function addModels(Application $application)
+    public static function bootstrap(Application $application)
     {
         $path = BASE_PATH . APP_URI;
         if ($path == '') {

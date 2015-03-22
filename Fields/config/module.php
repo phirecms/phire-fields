@@ -38,7 +38,7 @@ return [
         'events' => [
             [
                 'name'     => 'app.route.post',
-                'action'   => 'Fields\Event\Field::addModels',
+                'action'   => 'Fields\Event\Field::bootstrap',
                 'priority' => 0
             ],
             [
