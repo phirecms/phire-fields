@@ -123,7 +123,10 @@ class IndexController extends AbstractController
         }
 
         $this->prepareView('edit.phtml');
-        $this->view->title = 'Fields : Edit : ' . $field->name;
+        $this->view->title      = 'Fields : Edit';
+        $this->view->field_name = $field->name;
+
+        $fields[2]['name']['attributes']['onkeyup'] = 'phire.changeTitle(this.value);';
 
         $this->view->form = new Form\Field($fields);
         $this->view->form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])

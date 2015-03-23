@@ -221,19 +221,21 @@ class Field
         if (!empty($model['type_field']) && !empty($model['type_value']) &&
             (count($application->router()->getRouteMatch()->getDispatchParams()) > 0)) {
             $params = $application->router()->getRouteMatch()->getDispatchParams();
-            reset($params);
-            $id = $params[key($params)];
-            if (substr($application->router()->getRouteMatch()->getRoute(), -4) == 'edit') {
-                $modelClass  = $model['model'];
-                $modelType   = $model['type_field'];
-                $modelObject = new $modelClass();
-                if (method_exists($modelObject, 'getById')) {
-                    $modelObject->getById($id);
-                    $allowed = (isset($modelObject->{$modelType}) &&
-                        ($modelObject->{$modelType} == $model['type_value']));
+            if (isset($params['id'])) {
+                $id = $params['id'];
+                if (substr($application->router()->getRouteMatch()->getRoute(), -4) == 'edit') {
+                    $modelClass  = $model['model'];
+                    $modelType   = $model['type_field'];
+                    $modelObject = new $modelClass();
+                    if (method_exists($modelObject, 'getById')) {
+                        $modelObject->getById($id);
+                        $allowed = (isset($modelObject->{$modelType}) &&
+                            ($modelObject->{$modelType} == $model['type_value']));
+                    }
                 }
-            } else if (substr($application->router()->getRouteMatch()->getRoute(), -3) == 'add') {
-                $allowed = ($model['type_value'] == $id);
+            } else {
+                $type_id = $params[key($params)];
+                $allowed = ($model['type_value'] == $type_id);
             }
         }
 

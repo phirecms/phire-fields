@@ -82,9 +82,13 @@ class GroupsController extends AbstractController
         $group->getById($id);
 
         $this->prepareView('groups/edit.phtml');
-        $this->view->title = 'Fields : Groups : ' . $group->name;
+        $this->view->title            = 'Fields : Groups';
+        $this->view->field_group_name = $group->name;
 
-        $this->view->form = new Form\FieldGroup($this->application->config()['forms']['Fields\Form\FieldGroup']);
+        $fields = $this->application->config()['forms']['Fields\Form\FieldGroup'];
+        $fields[1]['name']['attributes']['onkeyup'] = 'phire.changeTitle(this.value);';
+
+        $this->view->form = new Form\FieldGroup($fields);
         $this->view->form->addFilter('htmlentities', [ENT_QUOTES, 'UTF-8'])
              ->setFieldValues($group->toArray());
 

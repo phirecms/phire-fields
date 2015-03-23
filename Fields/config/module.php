@@ -22,24 +22,22 @@ return [
                 ],
                 'attributes' => [
                     'class' => 'fields-nav-icon'
-                ],
-                'children' => [
-                    'field-groups' => [
-                        'name' => 'Groups',
-                        'href' => '/fields/groups',
-                        'acl'  => [
-                            'resource'   => 'field-groups',
-                            'permission' => 'index'
-                        ]
-                    ]
                 ]
+            ]
+        ],
+        'nav.module' => [
+            'name' => 'Field Groups',
+            'href' => '/fields/groups',
+            'acl'  => [
+                'resource'   => 'field-groups',
+                'permission' => 'index'
             ]
         ],
         'events' => [
             [
                 'name'     => 'app.route.post',
                 'action'   => 'Fields\Event\Field::bootstrap',
-                'priority' => 0
+                'priority' => 1000
             ],
             [
                 'name'   => 'app.dispatch.pre',
