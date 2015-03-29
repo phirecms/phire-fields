@@ -297,6 +297,8 @@ class Field
                     }
                 } else if (is_string($fv) && defined('Pop\Form\Element\Select::' . $fv)) {
                     $fieldValues = $fieldValues + \Pop\Form\Element\Select::parseValues(constant('Pop\Form\Element\Select::' . $fv));
+                } else if (is_string($fv) && (strpos($fv, 'YEAR') !== false)) {
+                    $fieldValues = $fieldValues + \Pop\Form\Element\Select::parseValues($fv);
                 } else {
                     $fieldValues[$fv] = $fv;
                 }
