@@ -295,6 +295,8 @@ class Field
                     } else {
                         $fieldValues[$fvAry[0]] = $fvAry[1];
                     }
+                } else if (is_string($fv) && defined('Pop\Form\Element\Select::' . $fv)) {
+                    $fieldValues = $fieldValues + \Pop\Form\Element\Select::parseValues(constant('Pop\Form\Element\Select::' . $fv));
                 } else {
                     $fieldValues[$fv] = $fv;
                 }
@@ -317,6 +319,8 @@ class Field
             } else {
                 $fieldValues = [$fvAry[0] => $fvAry[1]];
             }
+        } else if (is_string($field->values) && defined('Pop\Form\Element\Select::' . $field->values)) {
+            $fieldValues = \Pop\Form\Element\Select::parseValues(constant('Pop\Form\Element\Select::' . $field->values));
         } else {
             $fieldValues = $field->values;
         }
