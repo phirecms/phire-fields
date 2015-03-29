@@ -300,7 +300,12 @@ class Field
                 } else if (is_string($fv) && (strpos($fv, 'YEAR') !== false)) {
                     $fieldValues = $fieldValues + \Pop\Form\Element\Select::parseValues($fv);
                 } else {
-                    $fieldValues[$fv] = $fv;
+                    $parsedValues = \Pop\Form\Element\Select::parseValues($fv);
+                    if (is_array($parsedValues) && (count($parsedValues) > 0) && (null !== $parsedValues[key($parsedValues)])) {
+                        $fieldValues = $fieldValues + $parsedValues;
+                    } else {
+                        $fieldValues[$fv] = $fv;
+                    }
                 }
             }
         } else if (strpos($field->values, '::')) {
@@ -323,8 +328,15 @@ class Field
             }
         } else if (is_string($field->values) && defined('Pop\Form\Element\Select::' . $field->values)) {
             $fieldValues = \Pop\Form\Element\Select::parseValues(constant('Pop\Form\Element\Select::' . $field->values));
+        } else if (is_string($field->values) && (strpos($field->values, 'YEAR') !== false)) {
+            $fieldValues = \Pop\Form\Element\Select::parseValues($field->values);
         } else {
-            $fieldValues = $field->values;
+            $parsedValues = \Pop\Form\Element\Select::parseValues($field->values);
+            if (is_array($parsedValues) && (count($parsedValues) > 0) && (null !== $parsedValues[key($parsedValues)])) {
+                $fieldValues = $parsedValues;
+            } else {
+                $fieldValues = $field->values;
+            }
         }
 
         $label = ((null !== $field->editor) && ($field->editor != 'source')) ?
