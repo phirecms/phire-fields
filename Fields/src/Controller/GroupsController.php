@@ -29,7 +29,7 @@ class GroupsController extends AbstractController
             $pages = null;
         }
 
-        $this->prepareView('groups/index.phtml');
+        $this->prepareView('fields/groups/index.phtml');
         $this->view->title  = 'Fields : Groups';
         $this->view->pages  = $pages;
         $this->view->groups = $group->getAll(
@@ -46,7 +46,7 @@ class GroupsController extends AbstractController
      */
     public function add()
     {
-        $this->prepareView('groups/add.phtml');
+        $this->prepareView('fields/groups/add.phtml');
         $this->view->title = 'Fields : Groups : Add';
 
         $this->view->form = new Form\FieldGroup($this->application->config()['forms']['Fields\Form\FieldGroup']);
@@ -81,7 +81,7 @@ class GroupsController extends AbstractController
         $group = new Model\FieldGroup();
         $group->getById($id);
 
-        $this->prepareView('groups/edit.phtml');
+        $this->prepareView('fields/groups/edit.phtml');
         $this->view->title            = 'Fields : Groups';
         $this->view->field_group_name = $group->name;
 

@@ -29,7 +29,7 @@ class IndexController extends AbstractController
             $pages = null;
         }
 
-        $this->prepareView('index.phtml');
+        $this->prepareView('fields/index.phtml');
         $this->view->title  = 'Fields';
         $this->view->pages  = $pages;
         $this->view->fields = $field->getAll(
@@ -46,7 +46,7 @@ class IndexController extends AbstractController
      */
     public function add()
     {
-        $this->prepareView('add.phtml');
+        $this->prepareView('fields/add.phtml');
         $this->view->title = 'Fields : Add';
 
         $fields = $this->application->config()['forms']['Fields\Form\Field'];
@@ -122,7 +122,7 @@ class IndexController extends AbstractController
             $fields[4]['model_1']['value'][$model] = $model;
         }
 
-        $this->prepareView('edit.phtml');
+        $this->prepareView('fields/edit.phtml');
         $this->view->title      = 'Fields : Edit';
         $this->view->field_name = $field->name;
 
@@ -247,7 +247,7 @@ class IndexController extends AbstractController
                 $pages = null;
             }
 
-            $this->prepareView('browser.phtml');
+            $this->prepareView('fields/browser.phtml');
             $this->view->title = 'File Browser';
             $this->view->pages = $pages;
             $this->view->files = $field->getAllFiles($uploadFolder, $limit, $this->request->getQuery('page'));
