@@ -278,65 +278,25 @@ class Field
             $fValues     = explode('|', $field->values);
             $fieldValues = [];
             foreach ($fValues as $fv) {
-                if (strpos($fv, '::')) {
-                    $fvAry = explode('::', $fv);
-                    if ((strpos($fvAry[0], '\Table\\') !== false) && (count($fvAry) == 3)) {
-                        $class    = $fvAry[0];
-                        $optValue = $fvAry[1];
-                        $optName  = $fvAry[2];
-                        $vals     = $class::findAll();
-                        if ($vals->count() > 0) {
-                            foreach ($vals->rows() as $v) {
-                                if (isset($v->{$optValue}) && isset($v->{$optName})) {
-                                    $fieldValues[$v->{$optValue}] = $v->{$optName};
-                                }
-                            }
+                if ((strpos($fv, '[') !== false) && (strpos($fv, ']') !== false)) {
+                    $key     = substr($fv, 0, strpos($fv, '['));
+                    $vals    = substr($fv, (strpos($fv, '[') + 1));
+                    $vals    = substr($vals, 0, strpos($vals, ']'));
+                    $vals    = str_replace(',', '|', $vals);
+                    $valsAry = explode('|', $vals);
+                    foreach ($valsAry as $va) {
+                        if (!isset($fieldValues[$key])) {
+                            $fieldValues[$key] = self::parseValueString($va);
+                        } else {
+                            $fieldValues[$key] = $fieldValues[$key] + self::parseValueString($va);
                         }
-                    } else {
-                        $fieldValues[$fvAry[0]] = $fvAry[1];
                     }
-                } else if (is_string($fv) && defined('Pop\Form\Element\Select::' . $fv)) {
-                    $fieldValues = $fieldValues + \Pop\Form\Element\Select::parseValues(constant('Pop\Form\Element\Select::' . $fv));
-                } else if (is_string($fv) && (strpos($fv, 'YEAR') !== false)) {
-                    $fieldValues = $fieldValues + \Pop\Form\Element\Select::parseValues($fv);
                 } else {
-                    $parsedValues = \Pop\Form\Element\Select::parseValues($fv);
-                    if (is_array($parsedValues) && (count($parsedValues) > 0) && (null !== $parsedValues[key($parsedValues)])) {
-                        $fieldValues = $fieldValues + $parsedValues;
-                    } else {
-                        $fieldValues[$fv] = $fv;
-                    }
+                    $fieldValues = $fieldValues + self::parseValueString($fv);
                 }
             }
-        } else if (strpos($field->values, '::')) {
-            $fvAry = explode('::', $field->values);
-            if ((strpos($fvAry[0], '\Table\\') !== false) && (count($fvAry) == 3)) {
-                $fieldValues = [];
-                $class    = $fvAry[0];
-                $optValue = $fvAry[1];
-                $optName  = $fvAry[2];
-                $vals     = $class::findAll();
-                if ($vals->count() > 0) {
-                    foreach ($vals->rows() as $v) {
-                        if (isset($v->{$optValue}) && isset($v->{$optName})) {
-                            $fieldValues[$v->{$optValue}] = $v->{$optName};
-                        }
-                    }
-                }
-            } else {
-                $fieldValues = [$fvAry[0] => $fvAry[1]];
-            }
-        } else if (is_string($field->values) && defined('Pop\Form\Element\Select::' . $field->values)) {
-            $fieldValues = \Pop\Form\Element\Select::parseValues(constant('Pop\Form\Element\Select::' . $field->values));
-        } else if (is_string($field->values) && (strpos($field->values, 'YEAR') !== false)) {
-            $fieldValues = \Pop\Form\Element\Select::parseValues($field->values);
         } else {
-            $parsedValues = \Pop\Form\Element\Select::parseValues($field->values);
-            if (is_array($parsedValues) && (count($parsedValues) > 0) && (null !== $parsedValues[key($parsedValues)])) {
-                $fieldValues = $parsedValues;
-            } else {
-                $fieldValues = $field->values;
-            }
+            $fieldValues = self::parseValueString($field->values);
         }
 
         $label = ((null !== $field->editor) && ($field->editor != 'source')) ?
@@ -356,6 +316,49 @@ class Field
             'marked'     => (strpos($field->default_values, '|')) ?
                 explode('|', $field->default_values) : $field->default_values,
         ];
+    }
+
+    /**
+     * Parse fields values from a string
+     *
+     * @param  string $fv
+     * @return array
+     */
+    protected static function parseValueString($fv)
+    {
+        $fieldValues = [];
+
+        if (strpos($fv, '::') !== false) {
+            $fvAry = explode('::', $fv);
+            if ((strpos($fvAry[0], '\Table\\') !== false) && (count($fvAry) == 3)) {
+                $class    = $fvAry[0];
+                $optValue = $fvAry[1];
+                $optName  = $fvAry[2];
+                $vals     = $class::findAll();
+                if ($vals->count() > 0) {
+                    foreach ($vals->rows() as $v) {
+                        if (isset($v->{$optValue}) && isset($v->{$optName})) {
+                            $fieldValues[$v->{$optValue}] = $v->{$optName};
+                        }
+                    }
+                }
+            } else {
+                $fieldValues[$fvAry[0]] = $fvAry[1];
+            }
+        } else if (is_string($fv) && defined('Pop\Form\Element\Select::' . $fv)) {
+            $fieldValues = $fieldValues + \Pop\Form\Element\Select::parseValues(constant('Pop\Form\Element\Select::' . $fv));
+        } else if (is_string($fv) && (strpos($fv, 'YEAR') !== false)) {
+            $fieldValues = $fieldValues + \Pop\Form\Element\Select::parseValues($fv);
+        } else {
+            $parsedValues = \Pop\Form\Element\Select::parseValues($fv);
+            if (is_array($parsedValues) && (count($parsedValues) > 0) && (null !== $parsedValues[key($parsedValues)])) {
+                $fieldValues = $fieldValues + $parsedValues;
+            } else {
+                $fieldValues[$fv] = $fv;
+            }
+        }
+
+        return $fieldValues;
     }
 
 }
