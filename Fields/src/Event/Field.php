@@ -274,29 +274,33 @@ class Field
             }
         }
 
-        if (strpos($field->values, '|')) {
-            $fValues     = explode('|', $field->values);
-            $fieldValues = [];
-            foreach ($fValues as $fv) {
-                if ((strpos($fv, '[') !== false) && (strpos($fv, ']') !== false)) {
-                    $key     = substr($fv, 0, strpos($fv, '['));
-                    $vals    = substr($fv, (strpos($fv, '[') + 1));
-                    $vals    = substr($vals, 0, strpos($vals, ']'));
-                    $vals    = str_replace(',', '|', $vals);
-                    $valsAry = explode('|', $vals);
-                    foreach ($valsAry as $va) {
-                        if (!isset($fieldValues[$key])) {
-                            $fieldValues[$key] = self::parseValueString($va);
-                        } else {
-                            $fieldValues[$key] = $fieldValues[$key] + self::parseValueString($va);
+        if (!empty($field->values)) {
+            if (strpos($field->values, '|')) {
+                $fValues     = explode('|', $field->values);
+                $fieldValues = [];
+                foreach ($fValues as $fv) {
+                    if ((strpos($fv, '[') !== false) && (strpos($fv, ']') !== false)) {
+                        $key     = substr($fv, 0, strpos($fv, '['));
+                        $vals    = substr($fv, (strpos($fv, '[') + 1));
+                        $vals    = substr($vals, 0, strpos($vals, ']'));
+                        $vals    = str_replace(',', '|', $vals);
+                        $valsAry = explode('|', $vals);
+                        foreach ($valsAry as $va) {
+                            if (!isset($fieldValues[$key])) {
+                                $fieldValues[$key] = self::parseValueString($va);
+                            } else {
+                                $fieldValues[$key] = $fieldValues[$key] + self::parseValueString($va);
+                            }
                         }
+                    } else {
+                        $fieldValues = $fieldValues + self::parseValueString($fv);
                     }
-                } else {
-                    $fieldValues = $fieldValues + self::parseValueString($fv);
                 }
+            } else {
+                $fieldValues = $field->values;
             }
         } else {
-            $fieldValues = self::parseValueString($field->values);
+            $fieldValues = null;
         }
 
         $label = ((null !== $field->editor) && ($field->editor != 'source')) ?
