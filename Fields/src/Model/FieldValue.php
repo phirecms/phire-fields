@@ -14,10 +14,11 @@ class FieldValue extends AbstractModel
      * @param  string $class
      * @param  array  $params
      * @param  string $method
+     * @param  array $filters
      * @throws \Exception
      * @return mixed
      */
-    public static function getModelObjects($class, array $params = [], $method = 'getAll')
+    public static function getModelObjects($class, array $params = [], $method = 'getAll', array $filters = [])
     {
         $model = new $class();
 
@@ -47,7 +48,16 @@ class FieldValue extends AbstractModel
                 foreach ($fields->rows() as $field) {
                     $fv = Table\FieldValues::findById([$field->id, $row->id]);
                     if (isset($fv->field_id)) {
-                        $row->{$field->name} = json_decode($fv->value);
+                        $fValue = json_decode($fv->value);
+                        foreach ($filters as $filter => $params) {
+                            if ((null !== $params) && count($params) > 0) {
+                                $params = array_merge([$fValue], $params);
+                            } else {
+                                $params = [$fValue];
+                            }
+                            $fValue = call_user_func_array($filter, $params);
+                        }
+                        $row->{$field->name} = $fValue;
                     }
                 }
             }
@@ -62,10 +72,11 @@ class FieldValue extends AbstractModel
      * @param  string $class
      * @param  array  $params
      * @param  string $method
+     * @param  array $filters
      * @throws \Exception
      * @return mixed
      */
-    public static function getModelObject($class, array $params, $method = 'getById')
+    public static function getModelObject($class, array $params, $method = 'getById', array $filters = [])
     {
         $model = new $class();
 
@@ -78,7 +89,7 @@ class FieldValue extends AbstractModel
         call_user_func_array([$model, $method], $params);
 
         if (isset($model->id)) {
-            $model = self::getModelObjectValues($model);
+            $model = self::getModelObjectValues($model, null, $filters);
         }
 
         return $model;
@@ -88,28 +99,52 @@ class FieldValue extends AbstractModel
      * Get field values for a model object
      *
      * @param  mixed $model
+     * @param  int   $id
+     * @param  array $filters
      * @return mixed
      */
-    public static function getModelObjectValues($model)
+    public static function getModelObjectValues($model, $id = null, array $filters = [])
     {
-        $class = get_class($model);
-        $sql   = Table\Fields::sql();
+        if (is_string($model)) {
+            $class = $model;
+        } else {
+            $class = get_class($model);
+            if (isset($model->id)) {
+                $id = $model->id;
+            }
+        }
+
+        $fieldValues = [];
+
+        $sql = Table\Fields::sql();
         $sql->select()->where('models LIKE :models');
 
-        $value = ($sql->getDbType() == \Pop\Db\Sql::SQLITE) ? '%' . $class . '%' : '%' . addslashes($class) . '%';
-
+        $value  = ($sql->getDbType() == \Pop\Db\Sql::SQLITE) ? '%' . $class . '%' : '%' . addslashes($class) . '%';
         $fields = Table\Fields::execute((string)$sql, ['models' => $value]);
 
-        if (isset($model->id) && ($fields->count() > 0)) {
+        if ((null !== $id) && ($fields->count() > 0)) {
             foreach ($fields->rows() as $field) {
-                $fv = Table\FieldValues::findById([$field->id, $model->id]);
+                $fv = Table\FieldValues::findById([$field->id, $id]);
                 if (isset($fv->field_id)) {
-                    $model->{$field->name} = json_decode($fv->value);
+                    $fValue = json_decode($fv->value);
+                    foreach ($filters as $filter => $params) {
+                        if ((null !== $params) && count($params) > 0) {
+                            $params = array_merge([$fValue], $params);
+                        } else {
+                            $params = [$fValue];
+                        }
+                        $fValue = call_user_func_array($filter, $params);
+                    }
+                    if (is_object($model)) {
+                        $model->{$field->name} = $fValue;
+                    } else {
+                        $fieldValues[$field->name] = $fValue;
+                    }
                 }
             }
         }
 
-        return $model;
+        return (is_object($model)) ? $model : $fieldValues;
     }
 
 }
