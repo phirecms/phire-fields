@@ -86,7 +86,7 @@ class FieldValue
     {
         $uploadFolder = $application->module('phire-fields')->config()['upload_folder'];
         $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
-        if (($_POST) && isset($_POST['rm_media']) && (null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+        if (($_POST) && isset($_POST['rm_media']) && (null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
             $media = new \Media\Model\Media();
             foreach ($_POST['rm_media'] as $mid) {
                 $media->getById($mid);
@@ -154,7 +154,7 @@ class FieldValue
                                 $k = array_search($value[0], $oldValue);
                                 if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue[$k])) {
                                     unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue[$k]);
-                                    if ((null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+                                    if ((null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
                                         $media = new \Media\Model\Media();
                                         $media->getByFile($oldValue[$k]);
 
@@ -175,7 +175,7 @@ class FieldValue
                         } else {
                             if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue)) {
                                 unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue);
-                                if ((null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+                                if ((null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
                                     $media = new \Media\Model\Media();
                                     $media->getByFile($oldValue);
 
@@ -211,7 +211,7 @@ class FieldValue
                                 }
                             }
 
-                            if ((null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+                            if ((null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
                                 $library = new \Media\Model\MediaLibrary();
                                 $library->getByFolder($mediaLibrary);
                                 if (isset($library->id)) {
@@ -361,7 +361,7 @@ class FieldValue
 
                 while (isset($_FILES['field_' . $fieldId . '_' . $i])) {
                     if (!empty($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'])) {
-                        if ((null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
+                        if ((null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
                             $library = new \Media\Model\MediaLibrary();
                             $library->getByFolder($mediaLibrary);
                             if (isset($library->id)) {
