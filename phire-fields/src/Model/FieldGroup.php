@@ -1,9 +1,9 @@
 <?php
 
-namespace Fields\Model;
+namespace Phire\Fields\Model;
 
 use Phire\Model\AbstractModel;
-use Fields\Table;
+use Phire\Fields\Table;
 
 class FieldGroup extends AbstractModel
 {

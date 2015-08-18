@@ -1,11 +1,11 @@
 <?php
 
-namespace Fields\Form;
+namespace Phire\Fields\Form;
 
 use Pop\Form\Form;
 use Pop\Validator;
 
-class FieldGroup extends Form
+class Field extends Form
 {
 
     /**
@@ -16,12 +16,12 @@ class FieldGroup extends Form
      * @param  array  $fields
      * @param  string $action
      * @param  string $method
-     * @return FieldGroup
+     * @return Field
      */
-    public function __construct(array $fields, $action = null, $method = 'post')
+    public function __construct(array $fields = null, $action = null, $method = 'post')
     {
         parent::__construct($fields, $action, $method);
-        $this->setAttribute('id', 'field-group-form');
+        $this->setAttribute('id', 'field-form');
         $this->setIndent('    ');
     }
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace Fields\Controller;
+namespace Phire\Fields\Controller;
 
-use Fields\Model;
-use Fields\Form;
-use Fields\Table;
+use Phire\Fields\Model;
+use Phire\Fields\Form;
+use Phire\Fields\Table;
 use Phire\Controller\AbstractController;
 use Pop\Paginator\Paginator;
 
@@ -49,7 +49,7 @@ class IndexController extends AbstractController
         $this->prepareView('fields/add.phtml');
         $this->view->title = 'Fields : Add';
 
-        $fields = $this->application->config()['forms']['Fields\Form\Field'];
+        $fields = $this->application->config()['forms']['Phire\Fields\Form\Field'];
 
         if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
             $fields[1]['editor']['value']['ckeditor'] = 'CKEditor';
@@ -63,7 +63,7 @@ class IndexController extends AbstractController
             $fields[0]['group_id']['value'][$group->id] = $group->name;
         }
 
-        $models = $this->application->module('Fields')->config()['models'];
+        $models = $this->application->module('phire-fields')->config()['models'];
         foreach ($models as $model => $type) {
             $fields[4]['model_1']['value'][$model] = $model;
         }
@@ -100,7 +100,7 @@ class IndexController extends AbstractController
         $field = new Model\Field();
         $field->getById($id);
 
-        $fields = $this->application->config()['forms']['Fields\Form\Field'];
+        $fields = $this->application->config()['forms']['Phire\Fields\Form\Field'];
 
         if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
             $fields[1]['editor']['value']['ckeditor'] = 'CKEditor';
@@ -117,7 +117,7 @@ class IndexController extends AbstractController
             $fields[0]['group_id']['value'][$group->id] = $group->name;
         }
 
-        $models = $this->application->module('Fields')->config()['models'];
+        $models = $this->application->module('phire-fields')->config()['models'];
         foreach ($models as $model => $type) {
             $fields[4]['model_1']['value'][$model] = $model;
         }
@@ -159,7 +159,7 @@ class IndexController extends AbstractController
     {
         if ($this->request->isPost()) {
             $field = new Model\Field();
-            $field->remove($this->request->getPost(), $this->application->module('Fields')->config());
+            $field->remove($this->request->getPost(), $this->application->module('phire-fields')->config());
         }
         $this->redirect(BASE_PATH . APP_URI . '/fields?removed=' . time());
     }
@@ -216,7 +216,7 @@ class IndexController extends AbstractController
         // Get field models
         } else {
             $model  = rawurldecode($model);
-            $models = $this->application->module('Fields')->config()['models'];
+            $models = $this->application->module('phire-fields')->config()['models'];
 
             if (isset($models[$model])) {
                 $json = $models[$model];
@@ -235,7 +235,7 @@ class IndexController extends AbstractController
     public function browser()
     {
         if ((null !== $this->request->getQuery('editor')) && (null !== $this->request->getQuery('type'))) {
-            $uploadFolder = $this->application->module('Fields')->config()['upload_folder'];
+            $uploadFolder = $this->application->module('phire-fields')->config()['upload_folder'];
             $field        = new Model\Field();
 
             if ($field->hasFiles($uploadFolder, $this->config->pagination)) {

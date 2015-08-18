@@ -1,8 +1,8 @@
 <?php
 
-namespace Fields\Event;
+namespace Phire\Fields\Event;
 
-use Fields\Table;
+use Phire\Fields\Table;
 use Pop\Application;
 use Pop\Web\Cookie;
 

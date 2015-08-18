@@ -1,8 +1,8 @@
 <?php
 
-namespace Fields\Event;
+namespace Phire\Fields\Event;
 
-use Fields\Table;
+use Phire\Fields\Table;
 use Pop\Application;
 use Phire\Controller\AbstractController;
 use Pop\Crypt\Mcrypt;
@@ -49,7 +49,7 @@ class FieldValue
                             if ($field->type == 'file') {
                                 $rmCheckbox = new \Pop\Form\Element\CheckboxSet(
                                     'rm_field_file_' . $field->id, [$value => 'Remove <a href="' .
-                                        $application->module('Fields')->config()['upload_folder'] . '/' .
+                                        $application->module('phire-fields')->config()['upload_folder'] . '/' .
                                         $value . '" target="_blank">' . $value . '</a>?']
                                 );
                                 $controller->view()->form->insertElementAfter($key, $rmCheckbox);
@@ -84,8 +84,8 @@ class FieldValue
      */
     public static function removeMedia(Application $application)
     {
-        $uploadFolder = $application->module('Fields')->config()['upload_folder'];
-        $mediaLibrary = $application->module('Fields')->config()['media_library'];
+        $uploadFolder = $application->module('phire-fields')->config()['upload_folder'];
+        $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
         if (($_POST) && isset($_POST['rm_media']) && (null !== $mediaLibrary) && ($application->isRegistered('Media'))) {
             $media = new \Media\Model\Media();
             foreach ($_POST['rm_media'] as $mid) {
@@ -134,8 +134,8 @@ class FieldValue
             (null !== $controller->view()->form) && ($controller->view()->form instanceof \Pop\Form\Form)) {
             $fields       = $controller->view()->form->getFields();
             $modelId      = $controller->view()->id;
-            $uploadFolder = $application->module('Fields')->config()['upload_folder'];
-            $mediaLibrary = $application->module('Fields')->config()['media_library'];
+            $uploadFolder = $application->module('phire-fields')->config()['upload_folder'];
+            $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
 
             foreach ($_POST as $key => $value) {
                 if ((substr($key, 0, 14) == 'rm_field_file_') && isset($value[0])) {
@@ -233,9 +233,9 @@ class FieldValue
                             } else {
                                 $upload = new Upload(
                                     $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
-                                    $application->module('Fields')->config()['max_size'],
-                                    $application->module('Fields')->config()['disallowed_types'],
-                                    $application->module('Fields')->config()['allowed_types']
+                                    $application->module('phire-fields')->config()['max_size'],
+                                    $application->module('phire-fields')->config()['disallowed_types'],
+                                    $application->module('phire-fields')->config()['allowed_types']
                                 );
                                 $value = $upload->upload($_FILES[$key]);
                             }
@@ -256,8 +256,8 @@ class FieldValue
                                         if (null !== $fv->history) {
                                             $history      = json_decode($fv->history, true);
                                             $history[$ts] = $oldValue;
-                                            if (count($history) > $application->module('Fields')->config()['history']) {
-                                                $history = array_slice($history, 1, $application->module('Fields')->config()['history'], true);
+                                            if (count($history) > $application->module('phire-fields')->config()['history']) {
+                                                $history = array_slice($history, 1, $application->module('phire-fields')->config()['history'], true);
                                             }
                                             $fv->history = json_encode($history);
                                         } else {
@@ -383,7 +383,7 @@ class FieldValue
                         } else {
                             $upload = new Upload(
                                 $_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/',
-                                $application->module('Fields')->config()['max_size'], $application->module('Fields')->config()['allowed_types']
+                                $application->module('phire-fields')->config()['max_size'], $application->module('phire-fields')->config()['allowed_types']
                             );
                             $postValue = $upload->upload($_FILES['field_' . $fieldId . '_' . $i]);
                         }

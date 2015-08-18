@@ -1,10 +1,10 @@
 <?php
 
-namespace Fields\Table;
+namespace Phire\Fields\Table;
 
 use Pop\Db\Record;
 
-class Fields extends Record
+class FieldGroups extends Record
 {
 
     /**

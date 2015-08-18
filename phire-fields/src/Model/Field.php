@@ -1,8 +1,8 @@
 <?php
 
-namespace Fields\Model;
+namespace Phire\Fields\Model;
 
-use Fields\Table;
+use Phire\Fields\Table;
 use Phire\Model\AbstractModel;
 use Pop\File\Dir;
 

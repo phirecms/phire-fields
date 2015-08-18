@@ -1,6 +1,6 @@
 <?php
 
-namespace Fields\Table;
+namespace Phire\Fields\Table;
 
 use Pop\Db\Record;
 

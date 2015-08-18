@@ -3,7 +3,7 @@
 return [
     APP_URI => [
         '/fields[/]' => [
-            'controller' => 'Fields\Controller\IndexController',
+            'controller' => 'Phire\Fields\Controller\IndexController',
             'action'     => 'index',
             'acl'        => [
                 'resource'   => 'fields',
@@ -11,7 +11,7 @@ return [
             ]
         ],
         '/fields/add' => [
-            'controller' => 'Fields\Controller\IndexController',
+            'controller' => 'Phire\Fields\Controller\IndexController',
             'action'     => 'add',
             'acl'        => [
                 'resource'   => 'fields',
@@ -19,7 +19,7 @@ return [
             ]
         ],
         '/fields/edit/:id' => [
-            'controller' => 'Fields\Controller\IndexController',
+            'controller' => 'Phire\Fields\Controller\IndexController',
             'action'     => 'edit',
             'acl'        => [
                 'resource'   => 'fields',
@@ -27,7 +27,7 @@ return [
             ]
         ],
         '/fields/remove' => [
-            'controller' => 'Fields\Controller\IndexController',
+            'controller' => 'Phire\Fields\Controller\IndexController',
             'action'     => 'remove',
             'acl'        => [
                 'resource'   => 'fields',
@@ -35,11 +35,11 @@ return [
             ]
         ],
         '/fields/json/:model[/:fid][/:marked]' => [
-            'controller' => 'Fields\Controller\IndexController',
+            'controller' => 'Phire\Fields\Controller\IndexController',
             'action'     => 'json'
         ],
         '/fields/browser' => [
-            'controller' => 'Fields\Controller\IndexController',
+            'controller' => 'Phire\Fields\Controller\IndexController',
             'action'     => 'browser',
             'acl'        => [
                 'resource'   => 'fields',
@@ -47,7 +47,7 @@ return [
             ]
         ],
         '/fields/groups[/]' => [
-            'controller' => 'Fields\Controller\GroupsController',
+            'controller' => 'Phire\Fields\Controller\GroupsController',
             'action'     => 'index',
             'acl'        => [
                 'resource'   => 'field-groups',
@@ -55,7 +55,7 @@ return [
             ]
         ],
         '/fields/groups/add' => [
-            'controller' => 'Fields\Controller\GroupsController',
+            'controller' => 'Phire\Fields\Controller\GroupsController',
             'action'     => 'add',
             'acl'        => [
                 'resource'   => 'field-groups',
@@ -63,7 +63,7 @@ return [
             ]
         ],
         '/fields/groups/edit/:id' => [
-            'controller' => 'Fields\Controller\GroupsController',
+            'controller' => 'Phire\Fields\Controller\GroupsController',
             'action'     => 'edit',
             'acl'        => [
                 'resource'   => 'field-groups',
@@ -71,7 +71,7 @@ return [
             ]
         ],
         '/fields/groups/remove' => [
-            'controller' => 'Fields\Controller\GroupsController',
+            'controller' => 'Phire\Fields\Controller\GroupsController',
             'action'     => 'remove',
             'acl'        => [
                 'resource'   => 'field-groups',

@@ -1,10 +1,10 @@
 <?php
 
-namespace Fields\Controller;
+namespace Phire\Fields\Controller;
 
-use Fields\Model;
-use Fields\Form;
-use Fields\Table;
+use Phire\Fields\Model;
+use Phire\Fields\Form;
+use Phire\Fields\Table;
 use Phire\Controller\AbstractController;
 use Pop\Paginator\Paginator;
 
@@ -49,7 +49,7 @@ class GroupsController extends AbstractController
         $this->prepareView('fields/groups/add.phtml');
         $this->view->title = 'Fields : Groups : Add';
 
-        $this->view->form = new Form\FieldGroup($this->application->config()['forms']['Fields\Form\FieldGroup']);
+        $this->view->form = new Form\FieldGroup($this->application->config()['forms']['Phire\Fields\Form\FieldGroup']);
 
         if ($this->request->isPost()) {
             $this->view->form->addFilter('strip_tags')
@@ -85,7 +85,7 @@ class GroupsController extends AbstractController
         $this->view->title            = 'Fields : Groups';
         $this->view->field_group_name = $group->name;
 
-        $fields = $this->application->config()['forms']['Fields\Form\FieldGroup'];
+        $fields = $this->application->config()['forms']['Phire\Fields\Form\FieldGroup'];
         $fields[1]['name']['attributes']['onkeyup'] = 'phire.changeTitle(this.value);';
 
         $this->view->form = new Form\FieldGroup($fields);

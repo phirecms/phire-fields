@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'Fields\Form\Field' => [
+    'Phire\Fields\Form\Field' => [
         [
             'submit' => [
                 'type'       => 'submit',
@@ -200,7 +200,7 @@ return [
             ]
         ]
     ],
-    'Fields\Form\FieldGroup' => [
+    'Phire\Fields\Form\FieldGroup' => [
         [
             'submit' => [
                 'type'       => 'submit',

@@ -1,13 +1,13 @@
 <?php
 /**
- * Module Name: Fields
+ * Module Name: phire-fields
  * Author: Nick Sagona
  * Description: This is the fields module for Phire CMS 2
  * Version: 1.0
  */
 return [
-    'Fields' => [
-        'prefix'     => 'Fields\\',
+    'phire-fields' => [
+        'prefix'     => 'Phire\Fields\\',
         'src'        => __DIR__ . '/../src',
         'routes'     => include 'routes.php',
         'resources'  => include 'resources.php',
@@ -36,28 +36,28 @@ return [
         'events' => [
             [
                 'name'     => 'app.route.post',
-                'action'   => 'Fields\Event\Field::bootstrap',
+                'action'   => 'Phire\Fields\Event\Field::bootstrap',
                 'priority' => 1000
             ],
             [
                 'name'   => 'app.dispatch.pre',
-                'action' => 'Fields\Event\Field::addFields'
+                'action' => 'Phire\Fields\Event\Field::addFields'
             ],
             [
                 'name'   => 'app.dispatch.pre',
-                'action' => 'Fields\Event\FieldValue::removeMedia'
+                'action' => 'Phire\Fields\Event\FieldValue::removeMedia'
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Event\FieldValue::getAll'
+                'action' => 'Phire\Fields\Event\FieldValue::getAll'
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Event\FieldValue::save'
+                'action' => 'Phire\Fields\Event\FieldValue::save'
             ],
             [
                 'name'   => 'app.send',
-                'action' => 'Fields\Event\FieldValue::delete'
+                'action' => 'Phire\Fields\Event\FieldValue::delete'
             ]
         ],
         'models' => [
