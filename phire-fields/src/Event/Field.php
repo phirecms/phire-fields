@@ -26,10 +26,10 @@ class Field
         if (isset($cookie->phire)) {
             $phire = (array)$cookie->phire;
             if (!isset($phire['fields_upload_folder'])) {
-                $phire['fields_upload_folder'] = $application->module('Fields')->config()['upload_folder'];
+                $phire['fields_upload_folder'] = $application->module('phire-fields')->config()['upload_folder'];
             }
             if (!isset($phire['fields_media_library'])) {
-                $phire['fields_media_library'] = $application->module('Fields')->config()['media_library'];
+                $phire['fields_media_library'] = $application->module('phire-fields')->config()['media_library'];
             }
             $cookie->set('phire', $phire);
         }
@@ -45,13 +45,13 @@ class Field
                     'type_value' => $role->id,
                     'type_name'  => $role->name
                 ];
-                $application->module('Fields')->mergeConfig(['models' => $models]);
+                $application->module('phire-fields')->mergeConfig(['models' => $models]);
             }
         }
 
         foreach ($modules as $module => $config) {
             if (($module != 'Fields') && isset($config['models'])) {
-                $application->module('Fields')->mergeConfig(['models' => $config['models']]);
+                $application->module('phire-fields')->mergeConfig(['models' => $config['models']]);
             }
         }
     }
