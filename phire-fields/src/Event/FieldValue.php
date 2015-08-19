@@ -87,7 +87,7 @@ class FieldValue
         $uploadFolder = $application->module('phire-fields')->config()['upload_folder'];
         $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
         if (($_POST) && isset($_POST['rm_media']) && (null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
-            $media = new \Media\Model\Media();
+            $media = new \Phire\Media\Model\Media();
             foreach ($_POST['rm_media'] as $mid) {
                 $media->getById($mid);
                 if (isset($media->id) && !empty($media->file)) {
@@ -155,7 +155,7 @@ class FieldValue
                                 if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue[$k])) {
                                     unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue[$k]);
                                     if ((null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
-                                        $media = new \Media\Model\Media();
+                                        $media = new \Phire\Media\Model\Media();
                                         $media->getByFile($oldValue[$k]);
 
                                         if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
@@ -176,7 +176,7 @@ class FieldValue
                             if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue)) {
                                 unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $oldValue);
                                 if ((null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
-                                    $media = new \Media\Model\Media();
+                                    $media = new \Phire\Media\Model\Media();
                                     $media->getByFile($oldValue);
 
                                     if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
@@ -212,7 +212,7 @@ class FieldValue
                             }
 
                             if ((null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
-                                $library = new \Media\Model\MediaLibrary();
+                                $library = new \Phire\Media\Model\MediaLibrary();
                                 $library->getByFolder($mediaLibrary);
                                 if (isset($library->id)) {
                                     $settings = $library->getSettings();
@@ -221,7 +221,7 @@ class FieldValue
                                         $settings['max_filesize'], $settings['disallowed_types'], $settings['allowed_types']
                                     );
                                     if ($mediaUpload->test($_FILES[$key])) {
-                                        $media = new \Media\Model\Media();
+                                        $media = new \Phire\Media\Model\Media();
                                         $media->save($_FILES[$key], ['library_id' => $library->id]);
                                         $value = $media->file;
                                         copy(
@@ -362,7 +362,7 @@ class FieldValue
                 while (isset($_FILES['field_' . $fieldId . '_' . $i])) {
                     if (!empty($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'])) {
                         if ((null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
-                            $library = new \Media\Model\MediaLibrary();
+                            $library = new \Phire\Media\Model\MediaLibrary();
                             $library->getByFolder($mediaLibrary);
                             if (isset($library->id)) {
                                 $settings = $library->getSettings();
@@ -371,7 +371,7 @@ class FieldValue
                                     $settings['max_filesize'], $settings['disallowed_types'], $settings['allowed_types']
                                 );
                                 if ($mediaUpload->test($_FILES['field_' . $fieldId . '_' . $i])) {
-                                    $media = new \Media\Model\Media();
+                                    $media = new \Phire\Media\Model\Media();
                                     $media->save($_FILES['field_' . $fieldId . '_' . $i], ['library_id' => $library->id]);
                                     $postValue = $media->file;
                                     copy(
