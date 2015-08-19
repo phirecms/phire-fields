@@ -9,6 +9,38 @@ class FieldValue extends AbstractModel
 {
 
     /**
+     * Save field values
+     *
+     * @param  array  $fields
+     * @param  int    $modelId
+     * @return array
+     */
+    public function save(array $fields, $modelId)
+    {
+        $values = [];
+
+        foreach ($fields as $name => $value) {
+            if (substr($name, 0, 6) == 'field_') {
+                $fieldId = substr($name, (strpos($name, '_') + 1));
+                $fv      = new Table\FieldValues([
+                    'field_id'  => $fieldId,
+                    'model_id'  => $modelId,
+                    'value'     => json_encode($value),
+                    'timestamp' => time()
+                ]);
+                $fv->save();
+
+                $fld = Table\Fields::findById($fieldId);
+                if (isseT($fld->id)) {
+                    $values[$fld->name] = $value;
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    /**
      * Get all model objects with dynamic field values
      *
      * @param  string $class

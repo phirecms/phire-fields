@@ -37,11 +37,17 @@ class Field
         $modules = $application->modules();
         $roles   = \Phire\Table\Roles::findAll();
         foreach ($roles->rows() as $role) {
-            if (isset($modules['Fields']) && isset($modules['Fields']->config()['models']) &&
-                isset($modules['Fields']->config()['models']['Phire\Model\User'])) {
-                $models = $modules['Fields']->config()['models'];
+            if (isset($modules['phire-fields']) && isset($modules['phire-fields']->config()['models']) &&
+                isset($modules['phire-fields']->config()['models']['Phire\Model\User']) &&
+                isset($modules['phire-fields']->config()['models']['Phire\Model\Role'])) {
+                $models = $modules['phire-fields']->config()['models'];
                 $models['Phire\Model\User'][] = [
                     'type_field' => 'role_id',
+                    'type_value' => $role->id,
+                    'type_name'  => $role->name
+                ];
+                $models['Phire\Model\Role'][] = [
+                    'type_field' => 'id',
                     'type_value' => $role->id,
                     'type_name'  => $role->name
                 ];
@@ -50,7 +56,7 @@ class Field
         }
 
         foreach ($modules as $module => $config) {
-            if (($module != 'Fields') && isset($config['models'])) {
+            if (($module != 'phire-fields') && isset($config['models'])) {
                 $application->module('phire-fields')->mergeConfig(['models' => $config['models']]);
             }
         }
@@ -205,50 +211,13 @@ class Field
         $application->mergeConfig(['forms' => $forms], true);
     }
 
-
-    /**
-     * Determine if the field is allowed for the form
-     *
-     * @param  array       $model
-     * @param  Application $application
-     * @return boolean
-     */
-    protected static function isAllowed(array $model, Application $application)
-    {
-        $allowed = true;
-
-        // Determine if there is a model type restraint on the field
-        if (!empty($model['type_field']) && !empty($model['type_value']) &&
-            (count($application->router()->getRouteMatch()->getDispatchParams()) > 0)) {
-            $params = $application->router()->getRouteMatch()->getDispatchParams();
-            if (isset($params['id'])) {
-                $id = $params['id'];
-                if (substr($application->router()->getRouteMatch()->getRoute(), -4) == 'edit') {
-                    $modelClass  = $model['model'];
-                    $modelType   = $model['type_field'];
-                    $modelObject = new $modelClass();
-                    if (method_exists($modelObject, 'getById')) {
-                        $modelObject->getById($id);
-                        $allowed = (isset($modelObject->{$modelType}) &&
-                            ($modelObject->{$modelType} == $model['type_value']));
-                    }
-                }
-            } else {
-                $type_id = $params[key($params)];
-                $allowed = ($model['type_value'] == $type_id);
-            }
-        }
-
-        return $allowed;
-    }
-
     /**
      * Create field config from field object
      *
      * @param  \ArrayObject $field
      * @return array
      */
-    protected static function createFieldConfig(\ArrayObject $field)
+    public static function createFieldConfig(\ArrayObject $field)
     {
         $attribs = null;
         if (!empty($field->attributes)) {
@@ -328,7 +297,7 @@ class Field
      * @param  string $fv
      * @return array
      */
-    protected static function parseValueString($fv)
+    public static function parseValueString($fv)
     {
         $fieldValues = [];
 
@@ -363,6 +332,42 @@ class Field
         }
 
         return $fieldValues;
+    }
+
+    /**
+     * Determine if the field is allowed for the form
+     *
+     * @param  array       $model
+     * @param  Application $application
+     * @return boolean
+     */
+    protected static function isAllowed(array $model, Application $application)
+    {
+        $allowed = true;
+
+        // Determine if there is a model type restraint on the field
+        if (!empty($model['type_field']) && !empty($model['type_value']) &&
+            (count($application->router()->getRouteMatch()->getDispatchParams()) > 0)) {
+            $params = $application->router()->getRouteMatch()->getDispatchParams();
+            if (isset($params['id'])) {
+                $id = $params['id'];
+                if (substr($application->router()->getRouteMatch()->getRoute(), -4) == 'edit') {
+                    $modelClass  = $model['model'];
+                    $modelType   = $model['type_field'];
+                    $modelObject = new $modelClass();
+                    if (method_exists($modelObject, 'getById')) {
+                        $modelObject->getById($id);
+                        $allowed = (isset($modelObject->{$modelType}) &&
+                            ($modelObject->{$modelType} == $model['type_value']));
+                    }
+                }
+            } else {
+                $type_id = $params[key($params)];
+                $allowed = ($model['type_value'] == $type_id);
+            }
+        }
+
+        return $allowed;
     }
 
 }
