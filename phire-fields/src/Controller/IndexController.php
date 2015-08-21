@@ -185,16 +185,19 @@ class IndexController extends AbstractController
             }
         // Get field values
         } else if ((null !== $fid) && (null == $marked)) {
-            $fv = Table\FieldValues::findById([$fid, $model]);
-            if (!empty($fv->value)) {
-                $values = json_decode($fv->value, true);
-                if (is_array($values)) {
-                    array_shift($values);
+            $field = Table\Fields::findById($fid);
+            if ($field->dynamic) {
+                $fv = Table\FieldValues::findById([$fid, $model]);
+                if (!empty($fv->value)) {
+                    $values = json_decode($fv->value, true);
+                    if (is_array($values)) {
+                        array_shift($values);
+                    }
+                } else {
+                    $values = [];
                 }
-            } else {
-                $values = [];
+                $json['values'] = $values;
             }
-            $json['values'] = $values;
         // Get field history values
         } else if ((null !== $fid) && (null !== $marked)) {
             $value = '';

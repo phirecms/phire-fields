@@ -168,7 +168,7 @@ phire.addField = function(fid, values) {
                 }
                 jax(fldSetParent).appendRadio(vals, attribs, mrk);
             }
-            // Else, clone the input or select
+        // Else, clone the input or select
         } else {
             var realNewName = ((oldObj.nodeName == 'SELECT') && (oldObj.getAttribute('multiple') != undefined)) ?
             newName + '[]' : newName;
@@ -193,6 +193,7 @@ phire.addField = function(fid, values) {
                 jax('#' + newName).val('');
                 if (values[fieldName][j] != '') {
                     jax('#' + newName).val(values[fieldName][j]);
+                    jax('#' + newName)[0].defaultValue = values[fieldName][j];
                 }
             } else {
                 if ((jax('#rm_field_file_' + fid)[0] != undefined) && (values[fieldName][j] != '')) {
@@ -315,7 +316,6 @@ phire.loadEditor = function(editor, id) {
                 }
                 var eid = phire.editorIds[i].id;
                 jax('#field_' + eid).keyup(function(){
-                    console.log(jax('#field_' + eid).val());
                     CKEDITOR.instances['field_' + eid].setData(jax('#field_' + eid).val());
                 });
             } else if (editor == 'tinymce') {
@@ -413,9 +413,9 @@ jax(document).ready(function(){
         });
     }
     if (jax('form')[0] != undefined) {
-        var forms   = jax('form').toArray();
-        var fields  = [];
-        var path    = null;
+        var forms  = jax('form').toArray();
+        var fields = [];
+        var path   = null;
 
         for (var i = 0; i < forms.length; i++) {
             for (var name in forms[i]) {
@@ -433,7 +433,10 @@ jax(document).ready(function(){
         if ((fields.length > 0) && (path != null)) {
             var values = {};
             for (var i = 0; i < fields.length; i++) {
-                var json = jax.get(path + '/fields/json/' + jax('#id').val() + '/' + fields[i]);
+                var json = jax.get(
+                    path + '/fields/json/' + jax('#id').val() + '/' +
+                    ((fields[i].substr(-2) == '[]') ? fields[i].substring(0, (fields[i].length - 2)) : fields[i])
+                );
                 if ((json.values != undefined) && (json.values.constructor == Array) && (json.values.length > 0)) {
                     var fieldName = 'field_' + fields[i];
                     var fieldId   = fields[i];
