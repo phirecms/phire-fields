@@ -48,15 +48,15 @@ return [
                 'action' => 'Phire\Fields\Event\FieldValue::removeMedia'
             ],
             [
-                'name'   => 'app.send',
+                'name'   => 'app.send.pre',
                 'action' => 'Phire\Fields\Event\FieldValue::getAll'
             ],
             [
-                'name'   => 'app.send',
+                'name'   => 'app.send.pre',
                 'action' => 'Phire\Fields\Event\FieldValue::save'
             ],
             [
-                'name'   => 'app.send',
+                'name'   => 'app.send.pre',
                 'action' => 'Phire\Fields\Event\FieldValue::delete'
             ]
         ],
