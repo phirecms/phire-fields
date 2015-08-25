@@ -26,7 +26,10 @@ return [
             'order' => [
                 'type'       => 'text',
                 'label'      => 'Order',
-                'attributes' => ['size' => 3],
+                'attributes' => [
+                    'size'  => 3,
+                    'class' => 'order-field'
+                ],
                 'value'      => 0
             ],
             'required' => [
@@ -220,7 +223,10 @@ return [
             'order' => [
                 'type'       => 'text',
                 'label'      => 'Order',
-                'attributes' => ['size' => 3],
+                'attributes' => [
+                    'size'  => 3,
+                    'class' => 'order-field'
+                ],
                 'value'      => 0
             ],
             'id' => [
