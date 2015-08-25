@@ -57,28 +57,40 @@ class Field extends AbstractModel
      * Get uploaded files
      *
      * @param  string $dir
-     * @param  int    $limit
-     * @param  int    $page
      * @return array
      */
-    public function getAllFiles($dir, $limit = null, $page = null)
+    public function getAllFiles($dir)
     {
         $files = [];
         $d     = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir, false, false, false);
 
         foreach ($d->getFiles() as $file) {
-            if (($file != 'index.html')) {
+            if ($file != 'index.html') {
                 $files[$dir . '/' . $file] = $file;
             }
         }
 
-        if (count($files) > $limit) {
-            $offset = ((null !== $page) && ((int)$page > 1)) ?
-                ($page * $limit) - $limit : 0;
-            $files = array_slice($files, $offset, $limit, true);
+        return $files;
+    }
+
+    /**
+     * Get uploaded images
+     *
+     * @param  string $dir
+     * @return array
+     */
+    public function getAllImages($dir)
+    {
+        $images = [];
+        $d      = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir, false, false, false);
+
+        foreach ($d->getFiles() as $file) {
+            if (($file != 'index.html') && (preg_match('/^.*\.(jpg|jpeg|png|gif)$/i', $file) == 1)) {
+                $images[$dir . '/' . $file] = $file;
+            }
         }
 
-        return $files;
+        return $images;
     }
 
     /**
@@ -192,19 +204,6 @@ class Field extends AbstractModel
     }
 
     /**
-     * Determine if list of fields has pages
-     *
-     * @param  string $dir
-     * @param  int    $limit
-     * @return boolean
-     */
-    public function hasFiles($dir, $limit)
-    {
-        $files = $this->getAllFiles($dir);
-        return (count($files) > $limit);
-    }
-
-    /**
      * Get count of fields
      *
      * @return int
@@ -215,7 +214,7 @@ class Field extends AbstractModel
     }
 
     /**
-     * Determine if list of fields has pages
+     * Get file count
      *
      * @param  string $dir
      * @return int
@@ -226,6 +225,17 @@ class Field extends AbstractModel
         return count($files);
     }
 
+    /**
+     * Get image count
+     *
+     * @param  string $dir
+     * @return int
+     */
+    public function getImageCount($dir)
+    {
+        $images = $this->getAllImages($dir);
+        return count($images);
+    }
 
     /**
      * Get validators

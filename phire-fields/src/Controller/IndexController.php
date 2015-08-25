@@ -238,22 +238,76 @@ class IndexController extends AbstractController
     public function browser()
     {
         if ((null !== $this->request->getQuery('editor')) && (null !== $this->request->getQuery('type'))) {
-            $uploadFolder = $this->application->module('phire-fields')->config()['upload_folder'];
-            $field        = new Model\Field();
-
-            if ($field->hasFiles($uploadFolder, $this->config->pagination)) {
-                $limit = $this->config->pagination;
-                $pages = new Paginator($field->getFileCount($uploadFolder), $limit);
-                $pages->useInput(true);
-            } else {
-                $limit = null;
-                $pages = null;
-            }
-
             $this->prepareView('fields/browser.phtml');
             $this->view->title = 'File Browser';
-            $this->view->pages = $pages;
-            $this->view->files = $field->getAllFiles($uploadFolder, $limit, $this->request->getQuery('page'));
+
+            if (null === $this->request->getQuery('asset')) {
+                if ($this->request->getQuery('type') == 'image') {
+                    $this->view->pages      = null;
+                    $this->view->libraries  = [
+                        'Assets' => ['images' => 'Images']
+                    ];
+                } else {
+                    $libraries = [];
+                    if ($this->application->isRegistered('phire-content')) {
+                        $types = \Phire\Content\Table\ContentTypes::findAll(null, ['order' => 'order ASC']);
+                        if ($types->hasRows()) {
+                            $libraries['Assets'] = [];
+                            foreach ($types->rows() as $type) {
+                                $libraries['Assets'][$type->id] = $type->name;
+                            }
+                        }
+                    }
+                    $libraries['Assets']['files']  = 'Files';
+                    $libraries['Assets']['images'] = 'Images';
+                    $this->view->pages             = null;
+                    $this->view->libraries         = $libraries;
+                }
+            } else {
+                $asset  = $this->request->getQuery('asset');
+                $assets = [];
+                $limit  = $this->config->pagination;
+                $page   = $this->request->getQuery('page');
+                $pages  = null;
+                $field  = new Model\Field();
+
+                $uploadFolder = $this->application->module('phire-fields')->config()['upload_folder'];
+
+                switch ($asset) {
+                    case ('files'):
+                        $assets = $field->getAllFiles($uploadFolder);
+                        $this->view->assetType = 'Files';
+                        break;
+                    case ('images'):
+                        $assets = $field->getAllImages($uploadFolder);
+                        $this->view->assetType = 'Images';
+                        break;
+                    default:
+                        if (is_numeric($asset) && ($this->application->isRegistered('phire-content'))) {
+                            $type    = \Phire\Content\Table\ContentTypes::findById($asset);
+                            $content = \Phire\Content\Table\Content::findBy(['type_id' => $asset], null, ['order' => 'order, id ASC']);
+                            foreach ($content->rows() as $c) {
+                                $assets[BASE_PATH . $c->uri] = $c->title;
+                            }
+
+                            if (isset($type->id)) {
+                                $this->view->assetType = $type->name;
+                            }
+                        }
+                        break;
+                }
+
+                if (count($assets) > $limit) {
+                    $pages  = new Paginator(count($assets), $limit);
+                    $pages->useInput(true);
+                    $offset = ((null !== $page) && ((int)$page > 1)) ?
+                        ($page * $limit) - $limit : 0;
+                    $assets = array_slice($assets, $offset, $limit, true);
+                }
+
+                $this->view->pages         = $pages;
+                $this->view->browserAssets = $assets;
+            }
 
             $this->send();
         }

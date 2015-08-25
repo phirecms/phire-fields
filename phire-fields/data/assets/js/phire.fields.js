@@ -285,81 +285,85 @@ phire.changeHistory = function(sel) {
     }
 };
 
-phire.loadEditor = function(editor, id) {
-    if (null != id) {
-        var w = Math.round(jax('#field_' + id).width());
-        var h = Math.round(jax('#field_' + id).height());
-        phire.editorIds = [{ "id" : id, "width" : w, "height" : h }];
-    }
+if (phire.loadEditor == undefined) {
+    phire.loadEditor = function (editor, id) {
+        if (null != id) {
+            var w = Math.round(jax('#field_' + id).width());
+            var h = Math.round(jax('#field_' + id).height());
+            phire.editorIds = [{"id": id, "width": w, "height": h}];
+        }
 
-    var sysPath = '';
-    if (jax.cookie.load('phire') != '') {
-        var phireCookie = jax.cookie.load('phire');
-        sysPath = phireCookie.base_path + phireCookie.app_uri;
-    }
+        var sysPath = '';
+        if (jax.cookie.load('phire') != '') {
+            var phireCookie = jax.cookie.load('phire');
+            sysPath = phireCookie.base_path + phireCookie.app_uri;
+        }
 
-    if (phire.editorIds.length > 0) {
-        for (var i = 0; i < phire.editorIds.length; i++) {
-            if (editor == 'ckeditor') {
-                if (CKEDITOR.instances['field_' + phire.editorIds[i].id] == undefined) {
-                    CKEDITOR.replace(
-                        'field_' + phire.editorIds[i].id,
-                        {
-                            width                   : 'auto',
-                            height                  : phire.editorIds[i].height,
-                            allowedContent          : true,
-                            filebrowserBrowseUrl    : sysPath + '/fields/browser?editor=ckeditor&type=file',
-                            filebrowserWindowWidth  : '960',
-                            filebrowserWindowHeight : '720'
-                        }
-                    );
-                }
-                var eid = phire.editorIds[i].id;
-                jax('#field_' + eid).keyup(function(){
-                    CKEDITOR.instances['field_' + eid].setData(jax('#field_' + eid).val());
-                });
-            } else if (editor == 'tinymce') {
-                if (tinymce.editors['field_' + phire.editorIds[i].id] == undefined) {
-                    tinymce.init(
-                        {
-                            selector              : "textarea#field_" + phire.editorIds[i].id,
-                            theme                 : "modern",
-                            plugins: [
-                                "advlist autolink lists link image hr", "searchreplace wordcount code fullscreen",
-                                "table", "template paste textcolor"
-                            ],
-                            image_advtab          : true,
-                            toolbar1              : "insertfile undo redo | styleselect | forecolor backcolor | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | link image",
-                            width                 : 'auto',
-                            height                : phire.editorIds[i].height,
-                            relative_urls         : false,
-                            convert_urls          : 0,
-                            remove_script_host    : 0,
-                            file_browser_callback : function(field_name, url, type, win) {
-                                tinymce.activeEditor.windowManager.open({
-                                    title  : "File Browser",
-                                    url    : sysPath + '/fields/browser?editor=tinymce&type=' + type,
-                                    width  : 960,
-                                    height : 720
-                                }, {
-                                    oninsert : function(url) {
-                                        win.document.getElementById(field_name).value = url;
-                                    }
-                                });
+        if (phire.editorIds.length > 0) {
+            for (var i = 0; i < phire.editorIds.length; i++) {
+                if (editor == 'ckeditor') {
+                    if (CKEDITOR.instances['field_' + phire.editorIds[i].id] == undefined) {
+                        CKEDITOR.replace(
+                            'field_' + phire.editorIds[i].id,
+                            {
+                                width                         : 'auto',
+                                height                        : phire.editorIds[i].height,
+                                allowedContent                : true,
+                                filebrowserBrowseUrl          : sysPath + '/fields/browser?editor=ckeditor&type=file',
+                                filebrowserImageBrowseUrl     : sysPath + '/fields/browser?editor=ckeditor&type=image',
+                                filebrowserImageBrowseLinkUrl : sysPath + '/fields/browser?editor=ckeditor&type=file',
+                                filebrowserWindowWidth        : '960',
+                                filebrowserWindowHeight       : '720'
                             }
-                        }
-                    );
-                } else {
-                    tinymce.get('field_' + phire.editorIds[i].id).show();
+                        );
+                    }
+                    var eid = phire.editorIds[i].id;
+                    jax('#field_' + eid).keyup(function () {
+                        CKEDITOR.instances['field_' + eid].setData(jax('#field_' + eid).val());
+                    });
+                } else if (editor == 'tinymce') {
+                    if (tinymce.editors['field_' + phire.editorIds[i].id] == undefined) {
+                        tinymce.init(
+                            {
+                                selector: "textarea#field_" + phire.editorIds[i].id,
+                                theme: "modern",
+                                plugins: [
+                                    "advlist autolink lists link image hr", "searchreplace wordcount code fullscreen",
+                                    "table", "template paste textcolor"
+                                ],
+                                image_advtab: true,
+                                toolbar1: "insertfile undo redo | styleselect | forecolor backcolor | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | link image",
+                                width: 'auto',
+                                height: phire.editorIds[i].height,
+                                relative_urls: false,
+                                convert_urls: 0,
+                                remove_script_host: 0,
+                                file_browser_callback: function (field_name, url, type, win) {
+                                    tinymce.activeEditor.windowManager.open({
+                                        title: "File Browser",
+                                        url: sysPath + '/fields/browser?editor=tinymce&type=' + type,
+                                        width: 960,
+                                        height: 720
+                                    }, {
+                                        oninsert: function (url) {
+                                            win.document.getElementById(field_name).value = url;
+                                        }
+                                    });
+                                }
+                            }
+                        );
+                    } else {
+                        tinymce.get('field_' + phire.editorIds[i].id).show();
+                    }
+                    var eid = phire.editorIds[i].id;
+                    jax('#field_' + eid).keyup(function () {
+                        tinymce.editors['field_' + eid].setContent(jax('#field_' + eid).val());
+                    });
                 }
-                var eid = phire.editorIds[i].id;
-                jax('#field_' + eid).keyup(function(){
-                    tinymce.editors['field_' + eid].setContent(jax('#field_' + eid).val());
-                });
             }
         }
-    }
-};
+    };
+}
 
 phire.changeEditor = function() {
     var editor = jax(this).data('editor');

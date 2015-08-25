@@ -55,23 +55,39 @@
         <a class="logo">Home</a>
     </header>
     <div id="browser-content">
-<?php if (count($files) > 0): ?>
+<?php if (isset($libraries) && (count($libraries) > 0)): ?>
+<?php foreach ($libraries as $library => $types): ?>
+        <table class="data-table" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <th><?=$library; ?></th>
+            </tr>
+<?php foreach ($types as $id => $type): ?>
+            <tr>
+                <td><a href="<?=$_SERVER['REQUEST_URI'] . '&asset=' . $id; ?>"><?=$type; ?></a></td>
+            </tr>
+<?php endforeach; ?>
+        </table>
+<?php endforeach; ?>
+<?php elseif (isset($browserAssets) && (count($browserAssets) > 0)): ?>
+<?php if (isset($assetType)): ?>
+    <h3><?=$assetType; ?></h3>
+<?php endif; ?>
 <?php if (null !== $pages): ?>
     <div class="page-links"><?=$pages; ?></div>
 <?php endif; ?>
         <table class="data-table" cellpadding="0" cellspacing="0" border="0">
             <tr>
-                <th>Name</th>
+                <th>&nbsp;</th>
             </tr>
 <?php $i = 1; ?>
-<?php foreach ($files as $file => $name): ?>
+<?php foreach ($browserAssets as $asset => $name): ?>
             <tr>
-                <td><a href="<?=$file; ?>" onclick="<?=$click; ?>"><?=$name; ?></a></td>
+                <td><a href="<?=$asset; ?>" onclick="<?=$click; ?>"><?=$name; ?></a></td>
             </tr>
 <?php endforeach; ?>
         </table>
 <?php else: ?>
-    <p>There are currently no files.</p>
+    <p>There are currently no assets.</p>
 <?php endif; ?>
     </div>
 </div>
