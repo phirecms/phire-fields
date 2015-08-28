@@ -78,6 +78,26 @@ class Field
             foreach ($fields->rows() as $field) {
                 $field->validators = unserialize($field->validators);
                 $field->models     = unserialize($field->models);
+
+                foreach ($field->models as $i => $model) {
+                    if ($model['model'] == 'Phire\Model\User') {
+                        $register      = $model;
+                        $registerEmail = $model;
+                        $profile       = $model;
+                        $profileEmail  = $model;
+
+                        $register['model']      = 'Phire\Model\Register';
+                        $registerEmail['model'] = 'Phire\Model\RegisterEmail';
+                        $profile['model']       = 'Phire\Model\Profile';
+                        $profileEmail['model']  = 'Phire\Model\ProfileEmail';
+
+                        $field->models[] = $register;
+                        $field->models[] = $registerEmail;
+                        $field->models[] = $profile;
+                        $field->models[] = $profileEmail;
+                    }
+                }
+
                 foreach ($field->models as $model) {
                     $form = str_replace('Model', 'Form', $model['model']);
                     if (isset($forms[$form]) && (self::isAllowed($model, $application))) {
@@ -87,36 +107,41 @@ class Field
 
                         $fieldConfig = self::createFieldConfig($field);
 
-                        if ($field->dynamic) {
-                            if (isset($fieldConfig['label'])) {
-                                $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' .
-                                    $field->id . ');">[+]</a> ' . $fieldConfig['label'];
-                            } else {
-                                $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' .
-                                    $field->id . ');">[+]</a>';
-                            }
-                            if (isset($fieldConfig['attributes'])) {
-                                $fieldConfig['attributes']['data-path'] = BASE_PATH . APP_URI;
-                            } else {
-                                $fieldConfig['attributes'] = [
-                                    'data-path' => BASE_PATH . APP_URI
-                                ];
-                            }
-                        }
-
-                        if (is_numeric($key)) {
-                            if ($field->prepend) {
-                                $forms[$form][$key] = array_merge(
-                                    ['field_' . $field->id => $fieldConfig], $forms[$form][$key]
-                                );
-                            } else {
-                                $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
-                            }
+                        if (($form == 'Phire\Form\Register') || ($form == 'Phire\Form\RegisterEmail') ||
+                            ($form == 'Phire\Form\Profile') || ($form == 'Phire\Form\ProfileEmail')) {
+                            $forms[$form][1]['field_' . $field->id] = $fieldConfig;
                         } else {
-                            if ($field->prepend) {
-                                $forms[$form] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form]);
+                            if ($field->dynamic) {
+                                if (isset($fieldConfig['label'])) {
+                                    $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' .
+                                        $field->id . ');">[+]</a> ' . $fieldConfig['label'];
+                                } else {
+                                    $fieldConfig['label'] = '<a href="#" onclick="return phire.addField(' .
+                                        $field->id . ');">[+]</a>';
+                                }
+                                if (isset($fieldConfig['attributes'])) {
+                                    $fieldConfig['attributes']['data-path'] = BASE_PATH . APP_URI;
+                                } else {
+                                    $fieldConfig['attributes'] = [
+                                        'data-path' => BASE_PATH . APP_URI
+                                    ];
+                                }
+                            }
+
+                            if (is_numeric($key)) {
+                                if ($field->prepend) {
+                                    $forms[$form][$key] = array_merge(
+                                        ['field_' . $field->id => $fieldConfig], $forms[$form][$key]
+                                    );
+                                } else {
+                                    $forms[$form][$key]['field_' . $field->id] = $fieldConfig;
+                                }
                             } else {
-                                $forms[$form]['field_' . $field->id] = $fieldConfig;
+                                if ($field->prepend) {
+                                    $forms[$form] = array_merge(['field_' . $field->id => $fieldConfig], $forms[$form]);
+                                } else {
+                                    $forms[$form]['field_' . $field->id] = $fieldConfig;
+                                }
                             }
                         }
                     }
@@ -345,6 +370,11 @@ class Field
     {
         $allowed = true;
 
+        if (($model['model'] == 'Phire\Model\Register') || ($model['model'] == 'Phire\Model\RegisterEmail') ||
+            ($model['model'] == 'Phire\Model\Profile') || ($model['model'] == 'Phire\Model\ProfileEmail')) {
+            $model['model'] = 'Phire\Model\User';
+        }
+
         // Determine if there is a model type restraint on the field
         if (!empty($model['type_field']) && !empty($model['type_value']) &&
             (count($application->router()->getRouteMatch()->getDispatchParams()) > 0)) {
@@ -360,6 +390,8 @@ class Field
                         $allowed = (isset($modelObject->{$modelType}) &&
                             ($modelObject->{$modelType} == $model['type_value']));
                     }
+                } else if (substr($application->router()->getRouteMatch()->getRoute(), -8) == 'register') {
+                    $allowed = ((!empty($model['type_value']) && ($id == $model['type_value'])) || empty($model['type_value']));
                 }
             } else {
                 $type_id = $params[key($params)];
