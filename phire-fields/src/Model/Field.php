@@ -25,13 +25,13 @@ class Field extends AbstractModel
             $page = ((null !== $page) && ((int)$page > 1)) ?
                 ($page * $limit) - $limit : null;
 
-            return Table\Fields::findAll(null, [
+            return Table\Fields::findAll([
                 'offset' => $page,
                 'limit'  => $limit,
                 'order'  => $order
             ])->rows();
         } else {
-            return Table\Fields::findAll(null, [
+            return Table\Fields::findAll([
                 'order'  => $order
             ])->rows();
         }

@@ -24,13 +24,13 @@ class FieldGroup extends AbstractModel
             $page = ((null !== $page) && ((int)$page > 1)) ?
                 ($page * $limit) - $limit : null;
 
-            return Table\FieldGroups::findAll(null, [
+            return Table\FieldGroups::findAll([
                 'offset' => $page,
                 'limit'  => $limit,
                 'order'  => $order
             ])->rows();
         } else {
-            return Table\FieldGroups::findAll(null, [
+            return Table\FieldGroups::findAll([
                 'order'  => $order
             ])->rows();
         }

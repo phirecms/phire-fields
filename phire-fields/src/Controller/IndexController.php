@@ -250,7 +250,7 @@ class IndexController extends AbstractController
                 } else {
                     $libraries = [];
                     if ($this->application->isRegistered('phire-content')) {
-                        $types = \Phire\Content\Table\ContentTypes::findAll(null, ['order' => 'order ASC']);
+                        $types = \Phire\Content\Table\ContentTypes::findAll(['order' => 'order ASC']);
                         if ($types->hasRows()) {
                             $libraries['Assets'] = [];
                             foreach ($types->rows() as $type) {
@@ -285,7 +285,7 @@ class IndexController extends AbstractController
                     default:
                         if (is_numeric($asset) && ($this->application->isRegistered('phire-content'))) {
                             $type    = \Phire\Content\Table\ContentTypes::findById($asset);
-                            $content = \Phire\Content\Table\Content::findBy(['type_id' => $asset], null, ['order' => 'order, id ASC']);
+                            $content = \Phire\Content\Table\Content::findBy(['type_id' => $asset], ['order' => 'order, id ASC']);
                             foreach ($content->rows() as $c) {
                                 $assets[BASE_PATH . $c->uri] = $c->title;
                             }

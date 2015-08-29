@@ -71,8 +71,8 @@ class Field
     public static function addFields(Application $application)
     {
         $forms  = $application->config()['forms'];
-        $fields = Table\Fields::findBy(['group_id' => null], null, ['order' => 'order']);
-        $groups = Table\FieldGroups::findAll(null, ['order' => 'order']);
+        $fields = Table\Fields::findBy(['group_id' => null], ['order' => 'order']);
+        $groups = Table\FieldGroups::findAll(['order' => 'order']);
 
         if ($fields->count() > 0) {
             foreach ($fields->rows() as $field) {
@@ -157,7 +157,7 @@ class Field
             foreach ($groups->rows() as $group) {
                 $groupPrepend[$group->id] = (bool)$group->prepend;
 
-                $fields = Table\Fields::findBy(['group_id' => $group->id], null, ['order' => 'order']);
+                $fields = Table\Fields::findBy(['group_id' => $group->id], ['order' => 'order']);
 
                 if ($fields->count() > 0) {
                     $i = 0;
