@@ -25,13 +25,14 @@ class FieldValue
             ($controller->view()->form instanceof \Pop\Form\Form)) {
             $fields  = $controller->view()->form->getFields();
             $modelId = $controller->view()->form->id;
+            $model   = str_replace('Form', 'Model', get_class($controller->view()->form));
 
             foreach ($fields as $key => $value) {
                 if (substr($key, 0, 6) == 'field_') {
                     $fieldId = (int)substr($key, 6);
                     $field   = Table\Fields::findById($fieldId);
                     if (isset($field->id)) {
-                        $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                        $fv = Table\FieldValues::findById([$fieldId, $modelId, $model]);
                         if (isset($fv->field_id)) {
                             $fieldValue = $fv->getColumns();
                             $value      = json_decode($fieldValue['value']);
@@ -88,6 +89,8 @@ class FieldValue
         $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
         if (($_POST) && isset($_POST['rm_media']) && (null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
             $media = new \Phire\Media\Model\Media();
+            $model = 'Phire\Media\Model\Media';
+
             foreach ($_POST['rm_media'] as $mid) {
                 $media->getById($mid);
                 if (isset($media->id) && !empty($media->file)) {
@@ -102,7 +105,7 @@ class FieldValue
                             $v = json_decode($val->value);
                             if (is_array($v) && in_array($media->file, $v)) {
                                 unset($v[array_search($media->file, $v)]);
-                                $f = Table\FieldValues::findById([$val->field_id, $val->model_id]);
+                                $f = Table\FieldValues::findById([$val->field_id, $val->model_id, $model]);
                                 if (count($v) > 0) {
                                     $v = array_values($v);
                                     $f->value = json_encode($v);
@@ -111,7 +114,7 @@ class FieldValue
                                     $f->delete();
                                 }
                             } else {
-                                $f = Table\FieldValues::findById([$val->field_id, $val->model_id]);
+                                $f = Table\FieldValues::findById([$val->field_id, $val->model_id, $model]);
                                 $f->delete();
                             }
                         }
@@ -134,6 +137,7 @@ class FieldValue
             (null !== $controller->view()->form) && ($controller->view()->form instanceof \Pop\Form\Form)) {
             $fields       = $controller->view()->form->getFields();
             $modelId      = $controller->view()->id;
+            $model        = str_replace('Form', 'Model', get_class($controller->view()->form));
             $uploadFolder = $application->module('phire-fields')->config()['upload_folder'];
             $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
 
@@ -146,7 +150,7 @@ class FieldValue
                         $fieldId = substr($fieldId, 0, strpos($fieldId, '_'));
                     }
 
-                    $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                    $fv = Table\FieldValues::findById([$fieldId, $modelId, $model]);
                     if (isset($fv->field_id)) {
                         $oldValue = json_decode($fv->value);
                         if (is_array($oldValue)) {
@@ -200,7 +204,7 @@ class FieldValue
                             $dynamicFieldIds[] = $field->id;
                         }
 
-                        $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                        $fv = Table\FieldValues::findById([$fieldId, $modelId, $model]);
 
                         if (($field->type == 'file') && isset($_FILES[$key]) &&
                             !empty($_FILES[$key]['tmp_name']) && !empty($_FILES[$key]['name'])) {
@@ -288,6 +292,7 @@ class FieldValue
                                 $fv = new Table\FieldValues([
                                     'field_id'  => $fieldId,
                                     'model_id'  => $modelId,
+                                    'model'     => $model,
                                     'value'     => ($field->dynamic) ? json_encode([$value]) : json_encode($value),
                                     'timestamp' => time()
                                 ]);
@@ -301,7 +306,7 @@ class FieldValue
             foreach ($dynamicFieldIds as $fieldId) {
                 $i      = 1;
                 $offset = 0;
-                $fv     = Table\FieldValues::findById([$fieldId, $modelId]);
+                $fv     = Table\FieldValues::findById([$fieldId, $modelId, $model]);
 
                 $checkValue = json_decode($fv->value, true);
                 if (is_array($checkValue) && isset($checkValue[0]) && is_array($checkValue[0])) {
@@ -332,9 +337,10 @@ class FieldValue
                             $fv->save();
                         } else {
                             $fv = new Table\FieldValues([
-                                'field_id' => $fieldId,
-                                'model_id' => $modelId,
-                                'value' => json_encode([$postValue]),
+                                'field_id'  => $fieldId,
+                                'model_id'  => $modelId,
+                                'model'     => $model,
+                                'value'     => json_encode([$postValue]),
                                 'timestamp' => time()
                             ]);
                             $fv->save();
@@ -357,7 +363,7 @@ class FieldValue
             foreach ($dynamicFieldIds as $fieldId) {
                 $i      = 1;
                 $offset = 0;
-                $fv     = Table\FieldValues::findById([$fieldId, $modelId]);
+                $fv     = Table\FieldValues::findById([$fieldId, $modelId, $model]);
 
                 while (isset($_FILES['field_' . $fieldId . '_' . $i])) {
                     if (!empty($_FILES['field_' . $fieldId . '_' . $i]['tmp_name'])) {
@@ -402,6 +408,7 @@ class FieldValue
                             $fv = new Table\FieldValues([
                                 'field_id'  => $fieldId,
                                 'model_id'  => $modelId,
+                                'model'     => $model,
                                 'value'     => json_encode([$postValue]),
                                 'timestamp' => time()
                             ]);
@@ -413,7 +420,7 @@ class FieldValue
             }
 
             foreach ($dynamicFieldIds as $fieldId) {
-                $fv = Table\FieldValues::findById([$fieldId, $modelId]);
+                $fv = Table\FieldValues::findById([$fieldId, $modelId, $model]);
                 if (isset($fv->field_id)) {
                     $value = json_decode($fv->value, true);
                     if (is_array($value) && isset($value[0]) && is_array($value[0])) {

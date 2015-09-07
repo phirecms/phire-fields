@@ -78,7 +78,7 @@ class FieldValue extends AbstractModel
             $fields = Table\Fields::execute((string)$sql, ['models' => $value]);
             if (isset($row->id) && ($fields->count() > 0)) {
                 foreach ($fields->rows() as $field) {
-                    $fv = Table\FieldValues::findById([$field->id, $row->id]);
+                    $fv = Table\FieldValues::findById([$field->id, $row->id, $class]);
                     if (isset($fv->field_id)) {
                         $fValue = json_decode($fv->value);
                         foreach ($filters as $filter => $params) {
@@ -156,7 +156,7 @@ class FieldValue extends AbstractModel
 
         if ((null !== $id) && ($fields->count() > 0)) {
             foreach ($fields->rows() as $field) {
-                $fv = Table\FieldValues::findById([$field->id, $id]);
+                $fv = Table\FieldValues::findById([$field->id, $id, $class]);
                 if (isset($fv->field_id)) {
                     $fValue = json_decode($fv->value);
                     foreach ($filters as $filter => $params) {

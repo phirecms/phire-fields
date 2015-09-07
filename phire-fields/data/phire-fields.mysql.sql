@@ -60,12 +60,14 @@ DROP TABLE IF EXISTS `[{prefix}]field_values`;
 CREATE TABLE IF NOT EXISTS `[{prefix}]field_values` (
   `field_id` int(16) NOT NULL,
   `model_id` int(16) NOT NULL,
+  `model` varchar(255) NOT NULL,
   `value` mediumtext,
   `timestamp` int(16),
   `history` mediumtext,
   INDEX `field_id` (`field_id`),
   INDEX `model_id` (`model_id`),
-  UNIQUE (`field_id`, `model_id`),
+  INDEX `model` (`model`),
+  UNIQUE (`field_id`, `model_id`, `model`),
   CONSTRAINT `fk_field_id` FOREIGN KEY (`field_id`) REFERENCES `[{prefix}]fields` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 

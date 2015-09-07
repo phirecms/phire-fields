@@ -65,12 +65,14 @@ CREATE INDEX "field_field_name" ON "[{prefix}]fields" ("name");
 CREATE TABLE IF NOT EXISTS "[{prefix}]field_values" (
   "field_id" integer NOT NULL,
   "model_id" integer NOT NULL,
+  "model" varchar(255) NOT NULL,
   "value" text,
   "timestamp" integer,
   "history" text,
-  UNIQUE ("field_id", "model_id"),
+  UNIQUE ("field_id", "model_id", "model"),
   CONSTRAINT "fk_field_id" FOREIGN KEY ("field_id") REFERENCES "[{prefix}]fields" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 ) ;
 
 CREATE INDEX "field_id" ON "[{prefix}]field_values" ("field_id");
 CREATE INDEX "model_id" ON "[{prefix}]field_values" ("model_id");
+CREATE INDEX "model" ON "[{prefix}]field_values" ("model");

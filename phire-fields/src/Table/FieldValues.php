@@ -17,6 +17,6 @@ class FieldValues extends Record
      * Primary keys
      * @var array
      */
-    protected $primaryKeys = ['field_id', 'model_id'];
+    protected $primaryKeys = ['field_id', 'model_id', 'model'];
 
 }
