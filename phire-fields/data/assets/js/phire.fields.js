@@ -236,7 +236,7 @@ phire.getModelTypes = function(sel) {
             var phireCookie = jax.cookie.load('phire');
             var path = phireCookie.base_path + phireCookie.app_uri;
 
-            var json = jax.get(path + '/fields/json/' + jax(sel).val());
+            var json = jax.get(path + '/fields/json/' + encodeURIComponent(jax(sel).val()));
             if (json.length > 0) {
                 for (var i = 0; i < json.length; i++) {
                     jax('#model_type_' + id).append('option', {
