@@ -82,7 +82,7 @@ class IndexController extends AbstractController
                 $field = new Model\Field();
                 $field->save($this->view->form->getFields());
                 $this->view->id = $field->id;
-                $this->sess->setRequestValue('saved', true, 1);
+                $this->sess->setRequestValue('saved', true);
                 $this->redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id);
             }
         }
@@ -144,7 +144,7 @@ class IndexController extends AbstractController
                 $field = new Model\Field();
                 $field->update($this->view->form->getFields());
                 $this->view->id = $field->id;
-                $this->sess->setRequestValue('saved', true, 1);
+                $this->sess->setRequestValue('saved', true);
                 $this->redirect(BASE_PATH . APP_URI . '/fields/edit/' . $field->id);
             }
         }
@@ -163,7 +163,7 @@ class IndexController extends AbstractController
             $field = new Model\Field();
             $field->remove($this->request->getPost(), $this->application->module('phire-fields')->config());
         }
-        $this->sess->setRequestValue('removed', true, 1);
+        $this->sess->setRequestValue('removed', true);
         $this->redirect(BASE_PATH . APP_URI . '/fields');
     }
 

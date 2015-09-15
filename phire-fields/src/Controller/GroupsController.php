@@ -63,7 +63,7 @@ class GroupsController extends AbstractController
                 $group = new Model\FieldGroup();
                 $group->save($this->view->form->getFields());
                 $this->view->id = $group->id;
-                $this->sess->setRequestValue('saved', true, 1);
+                $this->sess->setRequestValue('saved', true);
                 $this->redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id);
             }
         }
@@ -104,7 +104,7 @@ class GroupsController extends AbstractController
                 $group = new Model\FieldGroup();
                 $group->update($this->view->form->getFields());
                 $this->view->id = $group->id;
-                $this->sess->setRequestValue('saved', true, 1);
+                $this->sess->setRequestValue('saved', true);
                 $this->redirect(BASE_PATH . APP_URI . '/fields/groups/edit/' . $group->id);
             }
         }
@@ -123,7 +123,7 @@ class GroupsController extends AbstractController
             $group = new Model\FieldGroup();
             $group->remove($this->request->getPost());
         }
-        $this->sess->setRequestValue('removed', true, 1);
+        $this->sess->setRequestValue('removed', true);
         $this->redirect(BASE_PATH . APP_URI . '/fields/groups');
     }
 
