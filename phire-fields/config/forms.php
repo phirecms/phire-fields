@@ -67,7 +67,7 @@ return [
         [
             'type' => [
                 'type'     => 'select',
-                'label'    => 'Field Type',
+                'label'    => 'Field Element Type',
                 'required' => true,
                 'value'    => [
                     'text'             => 'text',
