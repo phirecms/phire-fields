@@ -167,6 +167,7 @@ class Field extends AbstractModel
     {
         if (isset($fields['rm_fields'])) {
             $uploadFolder = $config['upload_folder'];
+            $mediaLibrary = $config['media_library'];
 
             foreach ($fields['rm_fields'] as $id) {
                 $field = Table\Fields::findById((int)$id);
@@ -179,10 +180,26 @@ class Field extends AbstractModel
                                 foreach ($val as $v) {
                                     if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $v)) {
                                         unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $v);
+                                        if ((null !== $mediaLibrary) && class_exists('Phire\Media\Model\Media')) {
+                                            $media = new \Phire\Media\Model\Media();
+                                            $media->getByFile($v);
+
+                                            if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
+                                                $media->remove(['rm_media' => [$media->id]]);
+                                            }
+                                        }
                                     }
                                 }
                             } else if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $val)) {
                                 unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $val);
+                                if ((null !== $mediaLibrary) && class_exists('Phire\Media\Model\Media')) {
+                                    $media = new \Phire\Media\Model\Media();
+                                    $media->getByFile($val);
+
+                                    if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
+                                        $media->remove(['rm_media' => [$media->id]]);
+                                    }
+                                }
                             }
                         }
                     }
