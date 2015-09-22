@@ -260,7 +260,10 @@ phire.changeHistory = function(sel) {
 
     if ((marked != 0) && (jax.cookie.load('phire') != '')) {
         var phireCookie = jax.cookie.load('phire');
-        var j = jax.json.parse(phireCookie.base_path + phireCookie.app_uri + '/fields/json/' + modelId + '/' + fieldId + '/' + marked);
+        var model       = encodeURIComponent(jax('#' + sel.id).data('model'));
+        var j           = jax.json.parse(
+            phireCookie.base_path + phireCookie.app_uri + '/fields/json/' + modelId + '/' + fieldId + '/' + marked + '?model=' + model
+        );
         if (jax('#field_' + j.fieldId)[0] != undefined) {
             if (typeof CKEDITOR !== 'undefined') {
                 if (CKEDITOR.instances['field_' + j.fieldId] != undefined) {
@@ -420,6 +423,7 @@ jax(document).ready(function(){
         var forms  = jax('form').toArray();
         var fields = [];
         var path   = null;
+        var model  = null;
 
         for (var i = 0; i < forms.length; i++) {
             for (var name in forms[i]) {
@@ -427,19 +431,21 @@ jax(document).ready(function(){
                     (typeof forms[i][name].name.substring == 'function') && (forms[i][name].name.substring(0, 6) == 'field_') &&
                     (fields.indexOf(forms[i][name].name.substring(6)) == -1)) {
                     fields.push(forms[i][name].name.substring(6));
-                    if (jax(forms[i][name]).data('path') !== null) {
-                        path = jax(forms[i][name]).data('path');
+                    if ((jax(forms[i][name]).data('path') !== null) && (jax(forms[i][name]).data('model') !== null)) {
+                        path  = jax(forms[i][name]).data('path');
+                        model = jax(forms[i][name]).data('model');
                     }
                 }
             }
         }
 
-        if ((fields.length > 0) && (path != null)) {
+        if ((fields.length > 0) && (path != null) && (model != null)) {
             var values = {};
             for (var i = 0; i < fields.length; i++) {
                 var json = jax.get(
                     path + '/fields/json/' + jax('#id').val() + '/' +
-                    ((fields[i].substr(-2) == '[]') ? fields[i].substring(0, (fields[i].length - 2)) : fields[i])
+                    ((fields[i].substr(-2) == '[]') ? fields[i].substring(0, (fields[i].length - 2)) : fields[i]) +
+                    '?model=' + encodeURIComponent(model)
                 );
                 if ((json.values != undefined) && (json.values.constructor == Array) && (json.values.length > 0)) {
                     var fieldName = 'field_' + fields[i];

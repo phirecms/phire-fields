@@ -120,10 +120,12 @@ class Field
                                         $field->id . ');">[+]</a>';
                                 }
                                 if (isset($fieldConfig['attributes'])) {
-                                    $fieldConfig['attributes']['data-path'] = BASE_PATH . APP_URI;
+                                    $fieldConfig['attributes']['data-path']  = BASE_PATH . APP_URI;
+                                    $fieldConfig['attributes']['data-model'] = $model['model'];
                                 } else {
                                     $fieldConfig['attributes'] = [
-                                        'data-path' => BASE_PATH . APP_URI
+                                        'data-path'  => BASE_PATH . APP_URI,
+                                        'data-model' => $model['model']
                                     ];
                                 }
                             }
@@ -179,12 +181,14 @@ class Field
                                 }
 
                                 if (isset($fieldConfig['attributes'])) {
-                                    $fieldConfig['attributes']['tabindex'] = $tab;
-                                    $fieldConfig['attributes']['data-path'] = BASE_PATH . APP_URI;
+                                    $fieldConfig['attributes']['tabindex']   = $tab;
+                                    $fieldConfig['attributes']['data-path']  = BASE_PATH . APP_URI;
+                                    $fieldConfig['attributes']['data-model'] = $model['model'];
                                 } else {
                                     $fieldConfig['attributes'] = [
-                                        'tabindex'  => $tab,
-                                        'data-path' => BASE_PATH . APP_URI
+                                        'tabindex'   => $tab,
+                                        'data-path'  => BASE_PATH . APP_URI,
+                                        'data-model' => $model['model']
                                     ];
                                 }
                                 $tab++;

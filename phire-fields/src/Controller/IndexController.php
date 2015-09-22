@@ -187,10 +187,10 @@ class IndexController extends AbstractController
                 $json['models']     = (null != $field->models)     ? unserialize($field->models)     : [];
             }
         // Get field values
-        } else if ((null !== $fid) && (null == $marked)) {
+        } else if ((null !== $fid) && (null == $marked) && (null !== $this->request->getQuery('model'))) {
             $field = Table\Fields::findById($fid);
             if ($field->dynamic) {
-                $fv = Table\FieldValues::findById([$fid, $model]);
+                $fv = Table\FieldValues::findById([$fid, $model, $this->request->getQuery('model')]);
                 if (!empty($fv->value)) {
                     $values = json_decode($fv->value, true);
                     if (is_array($values)) {
@@ -202,9 +202,9 @@ class IndexController extends AbstractController
                 $json['values'] = $values;
             }
         // Get field history values
-        } else if ((null !== $fid) && (null !== $marked)) {
+        } else if ((null !== $fid) && (null !== $marked) && (null !== $this->request->getQuery('model'))) {
             $value = '';
-            $fv = Table\FieldValues::findById([$fid, $model]);
+            $fv    = Table\FieldValues::findById([$fid, $model, $this->request->getQuery('model')]);
 
             if (isset($fv->field_id) && (null !== $fv->history)) {
                 $history = json_decode($fv->history, true);
@@ -218,6 +218,7 @@ class IndexController extends AbstractController
             }
             $json['fieldId'] = $fid;
             $json['modelId'] = $model;
+            $json['model']   = $this->request->getQuery('model');
             $json['value']   = $value;
         // Get field models
         } else {

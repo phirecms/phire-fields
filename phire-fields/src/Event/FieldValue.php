@@ -67,6 +67,7 @@ class FieldValue
                                 $revision = new \Pop\Form\Element\Select('history_' . $modelId . '_' . $field->id, $history);
                                 $revision->setLabel('Select Revision');
                                 $revision->setAttribute('onchange', 'phire.changeHistory(this);');
+                                $revision->setAttribute('data-model', $fv->model);
                                 $controller->view()->form->insertElementAfter($key, $revision);
                             }
                             $controller->view()->form->{$key} = $value;
