@@ -4,6 +4,7 @@ namespace Phire\Fields\Model;
 
 use Phire\Fields\Table;
 use Phire\Model\AbstractModel;
+use Pop\Web\Session;
 
 class FieldValue extends AbstractModel
 {
@@ -31,7 +32,7 @@ class FieldValue extends AbstractModel
                 $fv->save();
 
                 $fld = Table\Fields::findById($fieldId);
-                if (isseT($fld->id)) {
+                if (isset($fld->id)) {
                     $values[$fld->name] = $value;
                 }
             }
@@ -89,7 +90,7 @@ class FieldValue extends AbstractModel
                             }
                             $fValue = call_user_func_array($filter, $params);
                         }
-                        $row->{$field->name} = $fValue;
+                        $row->{$field->name} = self::parse($fValue);
                     }
                 }
             }
@@ -168,15 +169,109 @@ class FieldValue extends AbstractModel
                         $fValue = call_user_func_array($filter, $params);
                     }
                     if (is_object($model)) {
-                        $model->{$field->name} = $fValue;
+                        $model->{$field->name} = self::parse($fValue);
                     } else {
-                        $fieldValues[$field->name] = $fValue;
+                        $fieldValues[$field->name] = self::parse($fValue);
                     }
                 }
             }
         }
 
         return (is_object($model)) ? $model : $fieldValues;
+    }
+
+
+
+    /**
+     * Parse the value
+     *
+     * @param  string $fieldValue
+     * @return boolean
+     */
+    public static function parse($fieldValue)
+    {
+        $fieldValue = str_replace(
+            ['[{base_path}]', '[{content_path}]'],
+            [BASE_PATH, CONTENT_PATH],
+            $fieldValue
+        );
+
+        // Parse any date placeholders
+        $dates = [];
+        preg_match_all('/\[\{date.*\}\]/', $fieldValue, $dates);
+        if (isset($dates[0]) && isset($dates[0][0])) {
+            foreach ($dates[0] as $date) {
+                $pattern  = str_replace('}]', '', substr($date, (strpos($date, '_') + 1)));
+                $fieldValue = str_replace($date, date($pattern), $fieldValue);
+            }
+        }
+
+        // Parse any session placeholders
+        $open  = [];
+        $close = [];
+        $merge = [];
+        $sess  = [];
+        preg_match_all('/\[\{sess\}\]/msi', $fieldValue, $open, PREG_OFFSET_CAPTURE);
+        preg_match_all('/\[\{\/sess\}\]/msi', $fieldValue, $close, PREG_OFFSET_CAPTURE);
+
+        // If matches are found, format and merge the results.
+        if ((isset($open[0][0])) && (isset($close[0][0]))) {
+            foreach ($open[0] as $key => $value) {
+                $merge[] = [$open[0][$key][0] => $open[0][$key][1], $close[0][$key][0] => $close[0][$key][1]];
+            }
+        }
+        foreach ($merge as $match) {
+            $sess[] = substr($fieldValue, $match['[{sess}]'], (($match['[{/sess}]'] - $match['[{sess}]']) + 9));
+        }
+
+        if (count($sess) > 0) {
+            $session = Session::getInstance();
+            foreach ($sess as $s) {
+                $sessString = str_replace(['[{sess}]', '[{/sess}]'], ['', ''], $s);
+                $isSess = null;
+                $noSess = null;
+                if (strpos($sessString, '[{or}]') !== false) {
+                    $sessValues = explode('[{or}]', $sessString);
+                    if (isset($sessValues[0])) {
+                        $isSess = $sessValues[0];
+                    }
+                    if (isset($sessValues[1])) {
+                        $noSess = $sessValues[1];
+                    }
+                } else {
+                    $isSess = $sessString;
+                }
+                if (null !== $isSess) {
+                    if (!isset($session->user)) {
+                        $fieldValue = str_replace($s, $noSess, $fieldValue);
+                    } else {
+                        $newSess = $isSess;
+                        foreach ($_SESSION as $sessKey => $sessValue) {
+                            if ((is_array($sessValue) || ($sessValue instanceof \ArrayObject)) &&
+                                (strpos($fieldValue, '[{' . $sessKey . '->') !== false)) {
+                                foreach ($sessValue as $sessK => $sessV) {
+                                    if (!is_array($sessV)) {
+                                        $newSess = str_replace('[{' . $sessKey . '->' . $sessK . '}]', $sessV, $newSess);
+                                    }
+                                }
+                            } else if (!is_array($sessValue) && !($sessValue instanceof \ArrayObject) &&
+                                (strpos($fieldValue, '[{' . $sessKey) !== false)) {
+                                $newSess = str_replace('[{' . $sessKey . '}]', $sessValue, $newSess);
+                            }
+                        }
+                        if ($newSess != $isSess) {
+                            $fieldValue = str_replace('[{sess}]' . $sessString . '[{/sess}]', $newSess, $fieldValue);
+                        } else {
+                            $fieldValue = str_replace($s, $noSess, $fieldValue);
+                        }
+                    }
+                } else {
+                    $fieldValue = str_replace($s, '', $fieldValue);
+                }
+            }
+        }
+
+        return $fieldValue;
     }
 
 }
