@@ -90,12 +90,11 @@ class FieldValue
         $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
         if (($_POST) && isset($_POST['rm_media']) && (null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
             $media = new \Phire\Media\Model\Media();
-            $model = 'Phire\Media\Model\Media';
 
             foreach ($_POST['rm_media'] as $mid) {
                 $media->getById($mid);
                 if (isset($media->id) && !empty($media->file)) {
-                    $sql = Table\FieldValues::getSql();
+                    $sql = Table\FieldValues::sql();
                     $sql->select()->where('value LIKE :value');
                     $fv = Table\FieldValues::execute((string)$sql, ['value' => '%"' . $media->file . '"%']);
                     if ($fv->count() > 0) {
@@ -105,17 +104,32 @@ class FieldValue
                         foreach ($fv->rows() as $val) {
                             $v = json_decode($val->value);
                             if (is_array($v) && in_array($media->file, $v)) {
-                                unset($v[array_search($media->file, $v)]);
-                                $f = Table\FieldValues::findById([$val->field_id, $val->model_id, $model]);
-                                if (count($v) > 0) {
-                                    $v = array_values($v);
-                                    $f->value = json_encode($v);
-                                    $f->save();
-                                } else {
-                                    $f->delete();
+                                $sql = Table\FieldValues::sql();
+                                $sql->select()
+                                    ->where('field_id = :field_id')
+                                    ->where('model_id = :model_id')
+                                    ->where('value LIKE :value');
+                                $f = Table\FieldValues::execute((string)$sql, [
+                                    'field_id' => $val->field_id,
+                                    'model_id' => $val->model_id,
+                                    'value'    => '%"' . $media->file . '"%'
+                                ]);
+                                if (isset($f->field_id)) {
+                                    unset($v[array_search($media->file, $v)]);
+                                    if (count($v) > 0) {
+                                        $v = array_values($v);
+                                        $f->value = json_encode($v);
+                                        $f->save();
+                                    } else {
+                                        $f->delete();
+                                    }
                                 }
                             } else {
-                                $f = Table\FieldValues::findById([$val->field_id, $val->model_id, $model]);
+                                $f = Table\FieldValues::findBy([
+                                    'field_id' => $val->field_id,
+                                    'model_id' => $val->model_id,
+                                    'value' => '"' . $media->file . '"'
+                                ]);
                                 $f->delete();
                             }
                         }
