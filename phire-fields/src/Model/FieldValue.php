@@ -13,6 +13,72 @@ class FieldValue extends AbstractModel
 {
 
     /**
+     * Save field values
+     *
+     * @param  array  $fields
+     * @param  int    $modelId
+     * @param  string $model
+     * @return array
+     */
+    public function save(array $fields, $modelId, $model)
+    {
+        $values = [];
+
+        foreach ($fields as $name => $value) {
+            if (substr($name, 0, 6) == 'field_') {
+                $fieldId = substr($name, (strpos($name, '_') + 1));
+                $field   = Table\Fields::findById($fieldId);
+                if (isset($field->id)) {
+                    if ($field->storage == 'eav') {
+                        if ($field->encrypt) {
+                            if (is_array($value)) {
+                                foreach ($value as $k => $v) {
+                                    $value[$k] = (new Mcrypt())->create($v);
+                                }
+                            } else {
+                                $value = (new Mcrypt())->create($value);
+                            }
+                        }
+                        $fv = new Table\FieldValues([
+                            'field_id'  => $fieldId,
+                            'model_id'  => $modelId,
+                            'model'     => $model,
+                            'value'     => json_encode($value),
+                            'timestamp' => time()
+                        ]);
+                        $fv->save();
+                    } else {
+                        if (!is_array($value)) {
+                            $value = [$value];
+                        }
+                        foreach ($value as $v) {
+                            if ($field->encrypt) {
+                                $v = (new Mcrypt())->create($v);
+                            }
+                            $fv = new Record([
+                                'model_id'  => $modelId,
+                                'model'     => $model,
+                                'timestamp' => time(),
+                                'revision'  => 0,
+                                'value'     => $v
+                            ]);
+                            $fv->setPrefix(DB_PREFIX)
+                                ->setPrimaryKeys(['id'])
+                                ->setTable('field_' . $field->name);
+
+                            $fv->save();
+                        }
+                    }
+
+                    $values[$field->name] = $value;
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    /**
      * Get all model objects with dynamic field values
      *
      * @param  string $class
@@ -45,9 +111,9 @@ class FieldValue extends AbstractModel
             $sql   = Table\Fields::sql();
             $sql->select()->where('models LIKE :models');
 
-            $value = ($sql->getDbType() == \Pop\Db\Sql::SQLITE) ? '%' . $class . '%' : '%' . addslashes($class) . '%';
-
+            $value  = ($sql->getDbType() == \Pop\Db\Sql::SQLITE) ? '%' . $class . '%' : '%' . addslashes($class) . '%';
             $fields = Table\Fields::execute((string)$sql, ['models' => $value]);
+
             if (isset($row->id) && ($fields->count() > 0)) {
                 foreach ($fields->rows() as $field) {
                     $fValue = '';
