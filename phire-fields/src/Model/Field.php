@@ -161,9 +161,11 @@ class Field extends AbstractModel
             $field->models         = serialize($this->getModels());
             $field->save();
 
-            if (($oldStorage == 'eav') && ($field->storage != 'eav')) {
+            if (($oldStorage != 'eav') && ($field->storage == 'eav')) {
+                $this->dropFieldTable($field->name);
+            } else if (($oldStorage == 'eav') && ($field->storage != 'eav')) {
                 $this->createFieldTable($field->name, $field->storage);
-            } else (($oldStorage != 'eav') && ($field->storage != 'eav')) {
+            } else if (($oldStorage != 'eav') && ($field->storage != 'eav')) {
                 if (($oldStorage != $field->storage) || ($oldFieldName != $field->name)) {
                     $this->updateFieldTable($field->name, $oldFieldName, $field->storage);
                 }
@@ -224,7 +226,7 @@ class Field extends AbstractModel
                             $fv = new Record();
                             $fv->setPrefix(DB_PREFIX)
                                 ->setPrimaryKeys(['id'])
-                                ->setTable('fields_plus_' . $field->name);
+                                ->setTable('field_' . $field->name);
 
                             $fv->findAllRecords();
                             if ($fv->hasRows()) {
@@ -371,14 +373,18 @@ class Field extends AbstractModel
     {
         $sql   = Table\Fields::sql();
         $db    = $sql->getDb();
-        $table = $sql->quoteId(DB_PREFIX . 'fields_' . $name);
+        $table = $sql->quoteId(DB_PREFIX . 'field_' . $name);
 
         $fieldType = null;
 
         if ($sql->getDbType() == \Pop\Db\Sql::MYSQL) {
             $idSql     = $sql->quoteId('id') . ' integer NOT NULL AUTO_INCREMENT, ';
             $keySql    = 'PRIMARY KEY (' . $sql->quoteId('id') . ')';
-            $fieldType = $type . (($type == 'varchar') ? '(255)' : '');
+            if ($type == 'text') {
+                $fieldType = 'mediumtext';
+            } else {
+                $fieldType = $type . (($type == 'varchar') ? '(255)' : '');
+            }
         } else if ($sql->getDbType() == \Pop\Db\Sql::PGSQL) {
             $idSql     = $sql->quoteId('id') . ' integer NOT NULL DEFAULT nextval(\'field_' . $name . '_id_seq\'), ';
             $keySql    = 'PRIMARY KEY (' . $sql->quoteId('id') . ')';
@@ -421,7 +427,7 @@ class Field extends AbstractModel
             if ($sql->getDbType() == \Pop\Db\Sql::PGSQL) {
                 $db->query('ALTER SEQUENCE field_' . $name . '_id_seq OWNED BY ' . $table .'."id";');
             } else if ($sql->getDbType() == \Pop\Db\Sql::SQLITE) {
-                $db->query('INSERT INTO "sqlite_sequence" ("name", "seq") VALUES (\'' . DB_PREFIX . 'fields_' . $name . '\', 0);');
+                $db->query('INSERT INTO "sqlite_sequence" ("name", "seq") VALUES (\'' . DB_PREFIX . 'field_' . $name . '\', 0);');
             }
 
             // Add indices
@@ -431,7 +437,7 @@ class Field extends AbstractModel
             $module = \Phire\Table\Modules::findBy(['folder' => 'phire-fields']);
             if (isset($module->id)) {
                 $assets = unserialize($module->assets);
-                $assets['tables'][] = DB_PREFIX . 'fields_' . $name;
+                $assets['tables'][] = DB_PREFIX . 'field_' . $name;
                 $module->assets = serialize($assets);
                 $module->save();
             }
@@ -450,8 +456,8 @@ class Field extends AbstractModel
     {
         $sql      = Table\Fields::sql();
         $db       = $sql->getDb();
-        $oldTable = $sql->quoteId(DB_PREFIX . 'fields_' . $oldFieldName);
-        $newTable = $sql->quoteId(DB_PREFIX . 'fields_' . $name);
+        $oldTable = $sql->quoteId(DB_PREFIX . 'field_' . $oldFieldName);
+        $newTable = $sql->quoteId(DB_PREFIX . 'field_' . $name);
 
         if ($sql->getDbType() == \Pop\Db\Sql::MYSQL) {
             $fieldType = $type . (($type == 'varchar') ? '(255)' : '');
@@ -489,15 +495,15 @@ class Field extends AbstractModel
     {
         $sql   = Table\Fields::sql();
         $db    = $sql->getDb();
-        $table = $sql->quoteId(DB_PREFIX . 'fields_' . $name);
+        $table = $sql->quoteId(DB_PREFIX . 'field_' . $name);
 
         $db->query('DROP TABLE ' . $table);
 
         $module = \Phire\Table\Modules::findBy(['folder' => 'phire-fields']);
         if (isset($module->id)) {
             $assets = unserialize($module->assets);
-            if (in_array(DB_PREFIX . 'fields_' . $name, $assets['tables'])) {
-                unset($assets['tables'][array_search(DB_PREFIX . 'fields_' . $name, $assets['tables'])]);
+            if (in_array(DB_PREFIX . 'field_' . $name, $assets['tables'])) {
+                unset($assets['tables'][array_search(DB_PREFIX . 'field_' . $name, $assets['tables'])]);
             }
             $module->assets = serialize($assets);
             $module->save();

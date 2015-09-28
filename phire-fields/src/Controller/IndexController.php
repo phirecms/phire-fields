@@ -6,6 +6,7 @@ use Phire\Fields\Model;
 use Phire\Fields\Form;
 use Phire\Fields\Table;
 use Phire\Controller\AbstractController;
+use Pop\Db\Record;
 use Pop\Paginator\Paginator;
 
 class IndexController extends AbstractController
@@ -190,36 +191,85 @@ class IndexController extends AbstractController
         } else if ((null !== $fid) && (null == $marked) && (null !== $this->request->getQuery('model'))) {
             $field = Table\Fields::findById($fid);
             if ($field->dynamic) {
-                $fv = Table\FieldValues::findById([$fid, $model, $this->request->getQuery('model')]);
-                if (!empty($fv->value)) {
-                    $values = json_decode($fv->value, true);
-                    if (is_array($values)) {
-                        array_shift($values);
+                if ($field->storage == 'eav') {
+                    $fv = Table\FieldValues::findById([$fid, $model, $this->request->getQuery('model')]);
+                    if (!empty($fv->value)) {
+                        $values = json_decode($fv->value, true);
+                        if (is_array($values)) {
+                            array_shift($values);
+                        }
+                    } else {
+                        $values = [];
                     }
                 } else {
+                    $fv = new Record();
+                    $fv->setPrefix(DB_PREFIX)
+                        ->setPrimaryKeys(['id'])
+                        ->setTable('field_' . $field->name);
+
+                    $fv->findRecordsBy([
+                        'model_id'  => $model,
+                        'model'     => $this->request->getQuery('model')
+                    ], ['order' => 'id ASC']);
+
                     $values = [];
+                    if ($fv->hasRows() && ($fv->count() > 1)) {
+                        $rows = $fv->rows();
+
+                        for ($i = 1; $i < count($rows); $i++) {
+                            $values[] = $rows[$i]->value;
+                        }
+                    }
                 }
                 $json['values'] = $values;
             }
         // Get field history values
         } else if ((null !== $fid) && (null !== $marked) && (null !== $this->request->getQuery('model'))) {
+            $field = Table\Fields::findById($fid);
             $value = '';
-            $fv    = Table\FieldValues::findById([$fid, $model, $this->request->getQuery('model')]);
 
-            if (isset($fv->field_id) && (null !== $fv->history)) {
-                $history = json_decode($fv->history, true);
-                if (isset($history[$marked])) {
-                    $value = $history[$marked];
-                    $f = Table\Fields::findById($fid);
-                    if ($f->encrypt) {
-                        $value = (new \Pop\Crypt\Mcrypt())->decrypt($value);
+            if (isset($field->id)) {
+                if ($field->storage == 'eav') {
+                    $fv = Table\FieldValues::findById([$fid, $model, $this->request->getQuery('model')]);
+                    if (isset($fv->field_id) && (null !== $fv->history)) {
+                        $history = json_decode($fv->history, true);
+                        if (isset($history[$marked])) {
+                            $value = $history[$marked];
+                            $f = Table\Fields::findById($fid);
+                            if ($f->encrypt) {
+                                $value = (new \Pop\Crypt\Mcrypt())->decrypt($value);
+                            }
+                        }
                     }
+                    $json['fieldId'] = $fid;
+                    $json['modelId'] = $model;
+                    $json['model']   = $this->request->getQuery('model');
+                    $json['value']   = $value;
+                } else {
+                    $fv = new Record();
+                    $fv->setPrefix(DB_PREFIX)
+                        ->setPrimaryKeys(['id'])
+                        ->setTable('field_' . $field->name);
+
+                    $fv->findRecordsBy([
+                        'model_id' => $model,
+                        'model' => $this->request->getQuery('model'),
+                        'timestamp' => $marked
+                    ], ['order' => 'id ASC']);
+
+                    if (isset($fv->model_id)) {
+                        $value = $fv->value;
+                        if ($field->encrypt) {
+                            $value = (new \Pop\Crypt\Mcrypt())->decrypt($value);
+                        }
+                    }
+
+                    $json['fieldId'] = $fid;
+                    $json['modelId'] = $model;
+                    $json['model']   = $this->request->getQuery('model');
+                    $json['value']   = $value;
                 }
             }
-            $json['fieldId'] = $fid;
-            $json['modelId'] = $model;
-            $json['model']   = $this->request->getQuery('model');
-            $json['value']   = $value;
         // Get field models
         } else {
             $model  = rawurldecode($model);
