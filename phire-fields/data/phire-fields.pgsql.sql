@@ -33,6 +33,7 @@ CREATE SEQUENCE field_id_seq START 11001;
 CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
   "id" integer NOT NULL DEFAULT nextval('field_id_seq'),
   "group_id" integer,
+  "storage" varchar(255),
   "type" varchar(255),
   "name" varchar(255),
   "label" varchar(255),

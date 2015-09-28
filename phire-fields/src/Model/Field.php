@@ -103,6 +103,7 @@ class Field extends AbstractModel
     {
         $field = new Table\Fields([
             'group_id'       => ($fields['group_id'] != '----') ? (int)$fields['group_id'] : null,
+            'storage'        => $fields['storage'],
             'type'           => $fields['type'],
             'name'           => $fields['name'],
             'label'          => (!empty($fields['label'])) ? $fields['label'] : null,
@@ -121,6 +122,10 @@ class Field extends AbstractModel
         ]);
         $field->save();
 
+        if ($field->storage != 'eav') {
+            $this->createFieldTable($field->name, $field->storage);
+        }
+
         $this->data = array_merge($this->data, $field->getColumns());
     }
 
@@ -134,7 +139,11 @@ class Field extends AbstractModel
     {
         $field = Table\Fields::findById($fields['id']);
         if (isset($field->id)) {
+            $oldStorage   = $field->storage;
+            $oldFieldName = $field->name;
+
             $field->group_id       = ($fields['group_id'] != '----') ? (int)$fields['group_id'] : null;
+            $field->storage        = $fields['storage'];
             $field->type           = $fields['type'];
             $field->name           = $fields['name'];
             $field->label          = (!empty($fields['label'])) ? $fields['label'] : null;
@@ -151,6 +160,14 @@ class Field extends AbstractModel
                 $fields['editor'] : null;
             $field->models         = serialize($this->getModels());
             $field->save();
+
+            if (($oldStorage == 'eav') && ($field->storage != 'eav')) {
+                $this->createFieldTable($field->name, $field->storage);
+            } else (($oldStorage != 'eav') && ($field->storage != 'eav')) {
+                if (($oldStorage != $field->storage) || ($oldFieldName != $field->name)) {
+                    $this->updateFieldTable($field->name, $oldFieldName, $field->storage);
+                }
+            }
 
             $this->data = array_merge($this->data, $field->getColumns());
         }
@@ -173,16 +190,50 @@ class Field extends AbstractModel
                 $field = Table\Fields::findById((int)$id);
                 if (isset($field->id)) {
                     if ($field->type == 'file') {
-                        $values = Table\FieldValues::findBy(['field_id' => $field->id]);
-                        foreach ($values->rows() as $value) {
-                            $val = json_decode($value->value);
-                            if (is_array($val)) {
-                                foreach ($val as $v) {
-                                    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $v)) {
-                                        unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $v);
+                        if ($field->storage == 'eav') {
+                            $values = Table\FieldValues::findBy(['field_id' => $field->id]);
+                            foreach ($values->rows() as $value) {
+                                $val = json_decode($value->value);
+                                if (is_array($val)) {
+                                    foreach ($val as $v) {
+                                        if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $v)) {
+                                            unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $v);
+                                            if ((null !== $mediaLibrary) && class_exists('Phire\Media\Model\Media')) {
+                                                $media = new \Phire\Media\Model\Media();
+                                                $media->getByFile($v);
+
+                                                if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
+                                                    $media->remove(['rm_media' => [$media->id]]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $val)) {
+                                    unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $val);
+                                    if ((null !== $mediaLibrary) && class_exists('Phire\Media\Model\Media')) {
+                                        $media = new \Phire\Media\Model\Media();
+                                        $media->getByFile($val);
+
+                                        if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
+                                            $media->remove(['rm_media' => [$media->id]]);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            $fv = new Record();
+                            $fv->setPrefix(DB_PREFIX)
+                                ->setPrimaryKeys(['id'])
+                                ->setTable('fields_plus_' . $field->name);
+
+                            $fv->findAllRecords();
+                            if ($fv->hasRows()) {
+                                foreach ($fv->rows() as $f) {
+                                    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $f->value)) {
+                                        unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' .  $f->value);
                                         if ((null !== $mediaLibrary) && class_exists('Phire\Media\Model\Media')) {
                                             $media = new \Phire\Media\Model\Media();
-                                            $media->getByFile($v);
+                                            $media->getByFile($f->value);
 
                                             if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
                                                 $media->remove(['rm_media' => [$media->id]]);
@@ -190,19 +241,14 @@ class Field extends AbstractModel
                                         }
                                     }
                                 }
-                            } else if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $val)) {
-                                unlink($_SERVER['DOCUMENT_ROOT'] . $uploadFolder . '/' . $val);
-                                if ((null !== $mediaLibrary) && class_exists('Phire\Media\Model\Media')) {
-                                    $media = new \Phire\Media\Model\Media();
-                                    $media->getByFile($val);
-
-                                    if (isset($media->id) && ($media->library_folder == $mediaLibrary)) {
-                                        $media->remove(['rm_media' => [$media->id]]);
-                                    }
-                                }
                             }
                         }
                     }
+
+                    if ($field->storage != 'eav') {
+                        $this->dropFieldTable($field->name);
+                    }
+
                     $field->delete();
                 }
             }
@@ -312,6 +358,150 @@ class Field extends AbstractModel
         }
 
         return $models;
+    }
+
+    /**
+     * Create field table
+     *
+     * @param  string $name
+     * @param  string $type
+     * @return void
+     */
+    protected function createFieldTable($name, $type)
+    {
+        $sql   = Table\Fields::sql();
+        $db    = $sql->getDb();
+        $table = $sql->quoteId(DB_PREFIX . 'fields_' . $name);
+
+        $fieldType = null;
+
+        if ($sql->getDbType() == \Pop\Db\Sql::MYSQL) {
+            $idSql     = $sql->quoteId('id') . ' integer NOT NULL AUTO_INCREMENT, ';
+            $keySql    = 'PRIMARY KEY (' . $sql->quoteId('id') . ')';
+            $fieldType = $type . (($type == 'varchar') ? '(255)' : '');
+        } else if ($sql->getDbType() == \Pop\Db\Sql::PGSQL) {
+            $idSql     = $sql->quoteId('id') . ' integer NOT NULL DEFAULT nextval(\'field_' . $name . '_id_seq\'), ';
+            $keySql    = 'PRIMARY KEY (' . $sql->quoteId('id') . ')';
+            if ($type == 'float') {
+                $fieldType = 'real';
+            } else {
+                $fieldType = $type . (($type == 'varchar') ? '(255)' : '');
+            }
+        } else if ($sql->getDbType() == \Pop\Db\Sql::SQLITE) {
+            $idSql  = $sql->quoteId('id') . ' integer NOT NULL PRIMARY KEY AUTOINCREMENT, ';
+            $keySql = 'UNIQUE (' . $sql->quoteId('id') . ')';
+            if ($type == 'varchar') {
+                $fieldType = 'text';
+            } else if ($type == 'float') {
+                $fieldType = 'real';
+            } else {
+                $fieldType = $type;
+            }
+        }
+
+        if (null !== $fieldType) {
+            // Create PGSQL sequence
+            if ($sql->getDbType() == \Pop\Db\Sql::PGSQL) {
+                $db->query('CREATE SEQUENCE field_' . $name . '_id_seq START 1');
+            }
+
+            // Create table
+            $query = 'CREATE TABLE ' . $table . ' (' .
+                $idSql .
+                $sql->quoteId('model_id') . ' integer NOT NULL, ' .
+                $sql->quoteId('model') . ' varchar' . (($sql->getDbType() != \Pop\Db\Sql::SQLITE) ? '(255)' : '') . ' NOT NULL, ' .
+                $sql->quoteId('timestamp') . ' integer, ' .
+                $sql->quoteId('revision') . ' integer, ' .
+                $sql->quoteId('value') . ' ' . $fieldType . ', ' .
+                $keySql . ')';
+
+            $db->query($query);
+
+            // Add sequences
+            if ($sql->getDbType() == \Pop\Db\Sql::PGSQL) {
+                $db->query('ALTER SEQUENCE field_' . $name . '_id_seq OWNED BY ' . $table .'."id";');
+            } else if ($sql->getDbType() == \Pop\Db\Sql::SQLITE) {
+                $db->query('INSERT INTO "sqlite_sequence" ("name", "seq") VALUES (\'' . DB_PREFIX . 'fields_' . $name . '\', 0);');
+            }
+
+            // Add indices
+            $db->query('CREATE INDEX ' . $sql->quoteId('model_id_' . $name) . ' ON ' . $table . ' (' . $sql->quoteId('model_id') . ')');
+            $db->query('CREATE INDEX ' . $sql->quoteId('model_' . $name) . ' ON ' . $table . ' (' . $sql->quoteId('model') . ')');
+
+            $module = \Phire\Table\Modules::findBy(['folder' => 'phire-fields']);
+            if (isset($module->id)) {
+                $assets = unserialize($module->assets);
+                $assets['tables'][] = DB_PREFIX . 'fields_' . $name;
+                $module->assets = serialize($assets);
+                $module->save();
+            }
+        }
+    }
+
+    /**
+     * Update field table
+     *
+     * @param  int    $name
+     * @param  string $oldFieldName
+     * @param  string $type
+     * @return void
+     */
+    protected function updateFieldTable($name, $oldFieldName, $type)
+    {
+        $sql      = Table\Fields::sql();
+        $db       = $sql->getDb();
+        $oldTable = $sql->quoteId(DB_PREFIX . 'fields_' . $oldFieldName);
+        $newTable = $sql->quoteId(DB_PREFIX . 'fields_' . $name);
+
+        if ($sql->getDbType() == \Pop\Db\Sql::MYSQL) {
+            $fieldType = $type . (($type == 'varchar') ? '(255)' : '');
+        } else if ($sql->getDbType() == \Pop\Db\Sql::PGSQL) {
+            if ($type == 'float') {
+                $fieldType = 'real';
+            } else {
+                $fieldType = $type . (($type == 'varchar') ? '(255)' : '');
+            }
+        } else if ($sql->getDbType() == \Pop\Db\Sql::SQLITE) {
+            if ($type == 'varchar') {
+                $fieldType = 'text';
+            } else if ($type == 'float') {
+                $fieldType = 'real';
+            } else {
+                $fieldType = $type;
+            }
+        }
+
+        $db->query('ALTER TABLE ' . $oldTable . ' MODIFY COLUMN ' . $sql->quoteId('value') . ' ' . $fieldType);
+
+        if ($name != $oldFieldName) {
+            $db->query('ALTER TABLE ' . $oldTable . ' RENAME TO ' . $newTable);
+        }
+    }
+
+
+    /**
+     * Drop field table
+     *
+     * @param  string $name
+     * @return void
+     */
+    protected function dropFieldTable($name)
+    {
+        $sql   = Table\Fields::sql();
+        $db    = $sql->getDb();
+        $table = $sql->quoteId(DB_PREFIX . 'fields_' . $name);
+
+        $db->query('DROP TABLE ' . $table);
+
+        $module = \Phire\Table\Modules::findBy(['folder' => 'phire-fields']);
+        if (isset($module->id)) {
+            $assets = unserialize($module->assets);
+            if (in_array(DB_PREFIX . 'fields_' . $name, $assets['tables'])) {
+                unset($assets['tables'][array_search(DB_PREFIX . 'fields_' . $name, $assets['tables'])]);
+            }
+            $module->assets = serialize($assets);
+            $module->save();
+        }
     }
 
 }

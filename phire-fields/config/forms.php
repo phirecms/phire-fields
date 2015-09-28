@@ -10,6 +10,21 @@ return [
                     'class'  => 'save-btn wide'
                 ]
             ],
+            'storage' => [
+                'type'     => 'select',
+                'required' => true,
+                'label'    => 'Field Storage Type',
+                'value'    => [               // MySQL        | PostgreSQL   | SQLite
+                    'eav'      => 'EAV (default)',
+                    'varchar'  => 'varchar',  // varchar      | varchar      | text
+                    'text'     => 'text',     // text         | text         | text
+                    'integer'  => 'integer',  // integer      | integer      | integer
+                    'float'    => 'float',    // float        | real         | real
+                    'date'     => 'date',     // date         | date         | date
+                    'time'     => 'time',     // time         | time         | time
+                    'datetime' => 'datetime', // datetime     | datetime     | datetime
+                ]
+            ],
             'prepend' => [
                 'type'  => 'select',
                 'label' => 'Field Placement',

@@ -29,6 +29,7 @@ DROP TABLE IF EXISTS `[{prefix}]fields`;
 CREATE TABLE IF NOT EXISTS `[{prefix}]fields` (
   `id` int(16) NOT NULL AUTO_INCREMENT,
   `group_id` int(16),
+  `storage` varchar(255),
   `type` varchar(255),
   `name` varchar(255),
   `label` varchar(255),

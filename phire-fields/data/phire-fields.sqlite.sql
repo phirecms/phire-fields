@@ -38,6 +38,7 @@ CREATE INDEX "field_group_order" ON "[{prefix}]field_groups" ("order");
 CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "group_id" integer,
+  "storage" varchar,
   "type" varchar,
   "name" varchar,
   "label" varchar,
