@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
 
 INSERT INTO "sqlite_sequence" ("name", "seq") VALUES ('[{prefix}]fields', 11000);
 CREATE INDEX "field_group_id" ON "[{prefix}]fields" ("group_id");
+CREATE INDEX "field_storage" ON "[{prefix}]fields" ("storage");
 CREATE INDEX "field_field_type" ON "[{prefix}]fields" ("type");
 CREATE INDEX "field_field_name" ON "[{prefix}]fields" ("name");
 

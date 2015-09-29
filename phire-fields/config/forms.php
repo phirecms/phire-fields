@@ -14,15 +14,15 @@ return [
                 'type'     => 'select',
                 'required' => true,
                 'label'    => 'Field Storage Type',
-                'value'    => [               // MySQL        | PostgreSQL   | SQLite
-                    'eav'      => 'EAV (default)',
-                    'varchar'  => 'varchar',  // varchar      | varchar      | text
-                    'text'     => 'text',     // text         | text         | text
-                    'integer'  => 'integer',  // integer      | integer      | integer
-                    'float'    => 'float',    // float        | real         | real
-                    'date'     => 'date',     // date         | date         | date
-                    'time'     => 'time',     // time         | time         | time
-                    'datetime' => 'datetime', // datetime     | datetime     | datetime
+                'value'    => [                    // MySQL        | PostgreSQL   | SQLite
+                    'eav'      => 'EAV (default)', // [ stores in the EAV table, 'field_values' ]
+                    'varchar'  => 'varchar',       // varchar(255) | varchar(255) | text
+                    'text'     => 'text',          // mediumtext   | text         | text
+                    'integer'  => 'integer',       // integer      | integer      | integer
+                    'float'    => 'float',         // float        | real         | real
+                    'date'     => 'date',          // date         | date         | date
+                    'time'     => 'time',          // time         | time         | time
+                    'datetime' => 'datetime',      // datetime     | datetime     | datetime
                 ]
             ],
             'prepend' => [

@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS `[{prefix}]fields` (
   `models` text,
   PRIMARY KEY (`id`),
   INDEX `field_group_id` (`group_id`),
+  INDEX `field_storage` (`storage`),
   INDEX `field_type` (`type`),
   INDEX `field_name` (`name`),
   CONSTRAINT `fk_group_id` FOREIGN KEY (`group_id`) REFERENCES `[{prefix}]field_groups` (`id`) ON DELETE SET NULL ON UPDATE CASCADE

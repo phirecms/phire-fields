@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS "[{prefix}]fields" (
 
 ALTER SEQUENCE field_id_seq OWNED BY "[{prefix}]fields"."id";
 CREATE INDEX "field_group_id" ON "[{prefix}]fields" ("group_id");
+CREATE INDEX "field_storage" ON "[{prefix}]fields" ("storage");
 CREATE INDEX "field_field_type" ON "[{prefix}]fields" ("type");
 CREATE INDEX "field_field_name" ON "[{prefix}]fields" ("name");
 
