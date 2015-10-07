@@ -79,6 +79,10 @@
     padding: 5px 0 0 0;
 }
 
+#field-form-field-group-3 > dt, #field-form-field-group-3 > dd {
+    padding-left: 4px;
+}
+
 #browser-container {
     position: relative;
     min-height: 100%;

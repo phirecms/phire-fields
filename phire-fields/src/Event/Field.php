@@ -287,11 +287,11 @@ class Field
                             if (!isset($fieldValues[$key])) {
                                 $fieldValues[$key] = self::parseValueString($va);
                             } else {
-                                $fieldValues[$key] = $fieldValues[$key] + self::parseValueString($va);
+                                $fieldValues[$key] = array_merge($fieldValues[$key], self::parseValueString($va));
                             }
                         }
                     } else {
-                        $fieldValues = $fieldValues + self::parseValueString($fv);
+                        $fieldValues = array_merge($fieldValues, self::parseValueString($fv));
                     }
                 }
             } else {
