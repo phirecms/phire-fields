@@ -204,9 +204,10 @@ class FieldValue extends AbstractModel
      * @param  string $table
      * @param  string $model
      * @param  array  $filters
+     * @param  array  $conds
      * @return mixed
      */
-    public static function getModelObjectsFromTable($table, $model, array $filters = [])
+    public static function getModelObjectsFromTable($table, $model, array $filters = [], array $conds = [])
     {
         $sql = Table\Fields::sql();
         $sql->select()->where('models LIKE :models');
@@ -216,27 +217,46 @@ class FieldValue extends AbstractModel
         $encrypted = [];
         $multiples = [];
 
+        $allTables = $sql->db()->getTables();
+
         if ($fields->hasRows()) {
             $sql = new Sql($sql->db(), $table);
             $select = [$table . '.*'];
             foreach ($fields->rows() as $field) {
-                $select[$field->name] = DB_PREFIX . 'field_' . $field->name . '.value';
+                if (in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
+                    $select[$field->name] = DB_PREFIX . 'field_' . $field->name . '.value';
+                    $select[$field->name . '_revision'] = DB_PREFIX . 'field_' . $field->name . '.revision';
+                }
             }
 
             $sql->select($select);
             foreach ($fields->rows() as $field) {
-                if ($field->encrypt) {
-                    $encrypted[$field->id] = $field->name;
+                if (in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
+                    if ($field->encrypt) {
+                        $encrypted[$field->id] = $field->name;
+                    }
+                    if (($field->type != 'textarea-history') && (($field->dynamic) || ($field->type == 'checkbox') ||
+                            (($field->type == 'select') && (strpos($field->attributes, 'multiple') !== false)))
+                    ) {
+                        $multiples[$field->id] = $field->name;
+                    }
+                    $sql->select()->join(DB_PREFIX . 'field_' . $field->name, [$table . '.id' => DB_PREFIX . 'field_' . $field->name . '.model_id']);
                 }
-                if (($field->type != 'textarea-history') && (($field->dynamic) || ($field->type == 'checkbox') ||
-                        (($field->type == 'select') && (strpos($field->attributes, 'multiple') !== false)))) {
-                    $multiples[$field->id] = $field->name;
-                }
-                $sql->select()->join(DB_PREFIX . 'field_' . $field->name, [$table . '.id' => DB_PREFIX . 'field_' . $field->name . '.model_id']);
             }
 
             $sql->select()->groupBy($table . '.id');
-            $sql->select()->where('revision = 0');
+
+            foreach ($fields->rows() as $field) {
+                if (in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
+                    $sql->select()->where(DB_PREFIX . 'field_' . $field->name . '.revision = 0');
+                }
+            }
+
+            if (count($conds) > 0) {
+                foreach ($conds as $name => $cond) {
+                    $sql->select()->where(DB_PREFIX . 'field_' . $name . '.value ' . $cond);
+                }
+            }
 
             $record = new Record();
             $record->setPrefix(DB_PREFIX)
@@ -248,18 +268,20 @@ class FieldValue extends AbstractModel
             $values = $record->rows();
 
             foreach ($values as $key => $value) {
-                foreach ($filters as $filter => $params) {
-                    if ((null !== $params) && count($params) > 0) {
-                        $params = array_merge([$value], $params);
-                    } else {
-                        $params = [$value];
+                foreach ($value as $k => $v) {
+                    foreach ($filters as $filter => $params) {
+                        if ((null !== $params) && count($params) > 0) {
+                            $params = array_merge([$v], $params);
+                        } else {
+                            $params = [$v];
+                        }
+                        $v = call_user_func_array($filter, $params);
                     }
-                    $value = call_user_func_array($filter, $params);
-                }
-                if (in_array($key, $encrypted)) {
-                    $values[$key] = self::parse((new Mcrypt())->decrypt($value));
-                } else {
-                    $values[$key] = self::parse($value);
+                    if (in_array($key, $encrypted)) {
+                        $values[$key][$k] = self::parse((new Mcrypt())->decrypt($v));
+                    } else {
+                        $values[$key][$k] = self::parse($v);
+                    }
                 }
             }
 
