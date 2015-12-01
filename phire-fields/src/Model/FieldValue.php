@@ -203,11 +203,12 @@ class FieldValue extends AbstractModel
      *
      * @param  string $table
      * @param  string $model
+     * @param  array  $params
      * @param  array  $filters
      * @param  array  $conds
      * @return mixed
      */
-    public static function getModelObjectsFromTable($table, $model, array $filters = [], array $conds = [])
+    public static function getModelObjectsFromTable($table, $model, array $params = [], array $filters = [], array $conds = [])
     {
         $sql = Table\Fields::sql();
         $sql->select()->where('models LIKE :models');
@@ -223,7 +224,8 @@ class FieldValue extends AbstractModel
             $sql = new Sql($sql->db(), $table);
             $select = [$table . '.*'];
             foreach ($fields->rows() as $field) {
-                if (in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
+                $field->models = unserialize($field->models);
+                if (self::isFieldAllowed($field->models, $params) && in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
                     $select[$field->name] = DB_PREFIX . 'field_' . $field->name . '.value';
                     $select[$field->name . '_revision'] = DB_PREFIX . 'field_' . $field->name . '.revision';
                 }
@@ -231,7 +233,7 @@ class FieldValue extends AbstractModel
 
             $sql->select($select);
             foreach ($fields->rows() as $field) {
-                if (in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
+                if (self::isFieldAllowed($field->models, $params) && in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
                     if ($field->encrypt) {
                         $encrypted[$field->id] = $field->name;
                     }
@@ -247,8 +249,14 @@ class FieldValue extends AbstractModel
             $sql->select()->groupBy($table . '.id');
 
             foreach ($fields->rows() as $field) {
-                if (in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
+                if (self::isFieldAllowed($field->models, $params) && in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
                     $sql->select()->where(DB_PREFIX . 'field_' . $field->name . '.revision = 0');
+                }
+            }
+
+            if (count($params) > 0) {
+                foreach ($params as $param) {
+                    $sql->select()->where($table . '.' . $param);
                 }
             }
 
@@ -531,6 +539,28 @@ class FieldValue extends AbstractModel
         } else {
             return self::parseValue($fieldValue);
         }
+    }
+
+    /**
+     * Determine if the field is allowed for the entity type
+     *
+     * @param  array $models
+     * @param  array $params
+     * @return boolean
+     */
+    public static function isFieldAllowed($models, $params)
+    {
+        $result = false;
+        foreach ($models as $model) {
+            if (!empty($model['type_field']) && !empty($model['type_value']) &&
+                in_array($model['type_field'] . ' = ' . $model['type_value'], $params)) {
+                $result = true;
+            } else if (empty($model['type_field']) && empty($model['type_value'])) {
+                $result = true;
+            }
+        }
+
+        return $result;
     }
 
     /**
