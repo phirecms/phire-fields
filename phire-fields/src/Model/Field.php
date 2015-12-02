@@ -164,6 +164,8 @@ class Field extends AbstractModel
             if (($oldStorage != 'eav') && ($field->storage == 'eav')) {
                 $this->dropFieldTable($field->name);
             } else if (($oldStorage == 'eav') && ($field->storage != 'eav')) {
+                $f = new Table\FieldValues();
+                $f->delete(['field_id' => $field->id]);
                 $this->createFieldTable($field->name, $field->storage);
             } else if (($oldStorage != 'eav') && ($field->storage != 'eav')) {
                 if (($oldStorage != $field->storage) || ($oldFieldName != $field->name)) {
