@@ -206,9 +206,12 @@ class FieldValue extends AbstractModel
      * @param  array  $params
      * @param  array  $filters
      * @param  array  $conds
+     * @param  string $order
      * @return mixed
      */
-    public static function getModelObjectsFromTable($table, $model, array $params = [], array $filters = [], array $conds = [])
+    public static function getModelObjectsFromTable(
+        $table, $model, array $params = [], array $filters = [], array $conds = [], $order = null
+    )
     {
         $sql = Table\Fields::sql();
         $sql->select()->where('models LIKE :models');
@@ -264,6 +267,11 @@ class FieldValue extends AbstractModel
                 foreach ($conds as $name => $cond) {
                     $sql->select()->where(DB_PREFIX . 'field_' . $name . '.value ' . $cond);
                 }
+            }
+
+            if (null !== $order) {
+                $orderAry = explode(' ', $order);
+                $sql->select()->orderBy($orderAry[0], $orderAry[1]);
             }
 
             $record = new Record();
