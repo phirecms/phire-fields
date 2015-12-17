@@ -47,7 +47,7 @@
 
 #field-form-field-group-4 > dd > select, #field-form-field-group-5 > dd > select {
     margin: 0 0 6px 0;
-    padding: 2px 4px 3px 4px;
+    padding: 2px 32px 3px 4px;
     height: 25px;
     display: block;
     min-width: 200px;
