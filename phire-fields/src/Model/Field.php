@@ -62,7 +62,7 @@ class Field extends AbstractModel
     public function getAllFiles($dir)
     {
         $files = [];
-        $d     = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir, false, false, false);
+        $d     = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir, ['filesOnly' => true]);
 
         foreach ($d->getFiles() as $file) {
             if ($file != 'index.html') {
@@ -82,7 +82,7 @@ class Field extends AbstractModel
     public function getAllImages($dir)
     {
         $images = [];
-        $d      = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir, false, false, false);
+        $d      = new Dir($_SERVER['DOCUMENT_ROOT'] . $dir, ['filesOnly' => true]);
 
         foreach ($d->getFiles() as $file) {
             if (($file != 'index.html') && (preg_match('/^.*\.(jpg|jpeg|png|gif)$/i', $file) == 1)) {
