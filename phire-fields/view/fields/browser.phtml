@@ -32,8 +32,8 @@
 
 <?php
     $click = ($_GET['editor'] == 'ckeditor') ?
-        'window.opener.CKEDITOR.tools.callFunction(funcNum, this.href); window.close(); return false;' :
-        'top.tinymce.activeEditor.windowManager.getParams().oninsert(this.href); top.tinymce.activeEditor.windowManager.close(); return false;';
+        'window.opener.CKEDITOR.tools.callFunction(funcNum, this.href.substring(window.location.origin.length)); window.close(); return false;' :
+        'top.tinymce.activeEditor.windowManager.getParams().oninsert(this.href.substring(window.location.origin.length)); top.tinymce.activeEditor.windowManager.close(); return false;';
 ?>
 <?php if ($_GET['editor'] == 'ckeditor'): ?>
     <script type="text/javascript">
