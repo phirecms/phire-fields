@@ -126,6 +126,14 @@ return [
                     'style' => 'width: 99.5%'
                 ]
             ],
+            'attributes' => [
+                'type'       => 'text',
+                'label'      => 'Field Attributes',
+                'attributes' => [
+                    'size'  => 60,
+                    'style' => 'width: 99.5%'
+                ]
+            ],
             'values' => [
                 'type'       => 'text',
                 'label'      => 'Field Values (Pipe-Delimited)',
@@ -137,14 +145,6 @@ return [
             'default_values' => [
                 'type'       => 'text',
                 'label'      => 'Default Field Values (Pipe-Delimited)',
-                'attributes' => [
-                    'size'  => 60,
-                    'style' => 'width: 99.5%'
-                ]
-            ],
-            'attributes' => [
-                'type'       => 'text',
-                'label'      => 'Field Attributes',
                 'attributes' => [
                     'size'  => 60,
                     'style' => 'width: 99.5%'

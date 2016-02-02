@@ -65,7 +65,7 @@ return [
             'Phire\Model\Role' => []
         ],
         'history'          => 10,
-        'upload_folder'    => BASE_PATH . CONTENT_PATH . '/assets/phire-fields/files',
+        'upload_folder'    => BASE_PATH . CONTENT_PATH . '/files',
         'media_library'    => null,
         'max_size'         => 0,
         'disallowed_types' => null,

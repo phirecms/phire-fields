@@ -22,6 +22,15 @@ class Field
             $path = '/';
         }
 
+        if (!file_exists($_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder'])) {
+            mkdir($_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder']);
+            chmod($_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder'], 0777);
+            if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/index.html')) {
+                copy($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/index.html', $_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder'] . '/index.html');
+                chmod($_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder'] . '/index.html', 0777);
+            }
+        }
+
         $cookie = Cookie::getInstance(['path' => $path]);
         if (isset($cookie->phire)) {
             $phire = (array)$cookie->phire;
@@ -307,6 +316,27 @@ class Field
                 '" href="#">Source</a> ]</span>' :
             $field->label;
 
+        $fieldDefaultValues = (strpos($field->default_values, '|')) ?
+            explode('|', $field->default_values) : $field->default_values;
+
+        if ($fieldValues == 'QUERY_STRING') {
+            $fieldValues = (isset($_GET[$field->name]) && !empty($_GET[$field->name])) ?
+                htmlentities(strip_tags(urldecode($_GET[$field->name])), ENT_QUOTES, 'UTF-8') : null;
+        }
+
+        if ($fieldDefaultValues == 'QUERY_STRING') {
+            if (isset($_GET[$field->name]) && !empty($_GET[$field->name])) {
+                $fieldDefaultValues = [];
+                if (is_array($_GET[$field->name])) {
+                    foreach ($_GET[$field->name] as $queryValue) {
+                        $fieldDefaultValues[] = htmlentities(strip_tags(urldecode($queryValue)), ENT_QUOTES, 'UTF-8');
+                    }
+                } else {
+                    $fieldDefaultValues = htmlentities(strip_tags(urldecode($_GET[$field->name])), ENT_QUOTES, 'UTF-8');
+                }
+            }
+        }
+
         return [
             'type'       => ((strpos($field->type, '-history') !== false) ?
                 substr($field->type, 0, strpos($field->type, '-history')) : $field->type),
@@ -315,8 +345,7 @@ class Field
             'attributes' => $attribs,
             'validators' => $validators,
             'value'      => $fieldValues,
-            'marked'     => (strpos($field->default_values, '|')) ?
-                explode('|', $field->default_values) : $field->default_values,
+            'marked'     => $fieldDefaultValues
         ];
     }
 
