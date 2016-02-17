@@ -22,21 +22,9 @@ class Field
             $path = '/';
         }
 
-        if (!file_exists($_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder'])) {
-            mkdir($_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder']);
-            chmod($_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder'], 0777);
-            if (file_exists($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/index.html')) {
-                copy($_SERVER['DOCUMENT_ROOT'] . BASE_PATH . CONTENT_PATH . '/index.html', $_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder'] . '/index.html');
-                chmod($_SERVER['DOCUMENT_ROOT'] . $application->module('phire-fields')->config()['upload_folder'] . '/index.html', 0777);
-            }
-        }
-
         $cookie = Cookie::getInstance(['path' => $path]);
         if (isset($cookie->phire)) {
             $phire = (array)$cookie->phire;
-            if (!isset($phire['fields_upload_folder'])) {
-                $phire['fields_upload_folder'] = $application->module('phire-fields')->config()['upload_folder'];
-            }
             if (!isset($phire['fields_media_library'])) {
                 $phire['fields_media_library'] = $application->module('phire-fields')->config()['media_library'];
             }

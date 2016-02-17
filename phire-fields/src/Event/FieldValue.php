@@ -51,7 +51,7 @@ class FieldValue
                                 if ($field->type == 'file') {
                                     $rmCheckbox = new \Pop\Form\Element\CheckboxSet(
                                         'rm_field_file_' . $field->id, [$value => 'Remove <a href="' .
-                                            $application->module('phire-fields')->config()['upload_folder'] . '/' .
+                                            BASE_PATH . CONTENT_PATH . '/files/' .
                                             $value . '" target="_blank">' . $value . '</a>?']
                                     );
                                     $controller->view()->form->insertElementAfter($key, $rmCheckbox);
@@ -101,7 +101,7 @@ class FieldValue
                                 if ($field->type == 'file') {
                                     $rmCheckbox = new \Pop\Form\Element\CheckboxSet(
                                         'rm_field_file_' . $field->id, [$fieldValue['value'] => 'Remove <a href="' .
-                                            $application->module('phire-fields')->config()['upload_folder'] . '/' .
+                                            BASE_PATH . CONTENT_PATH . '/files/' .
                                             $fieldValue['value'] . '" target="_blank">' . $fieldValue['value'] . '</a>?']
                                     );
                                     $controller->view()->form->insertElementAfter($key, $rmCheckbox);
@@ -139,7 +139,7 @@ class FieldValue
      */
     public static function removeMedia(Application $application)
     {
-        $uploadFolder = $application->module('phire-fields')->config()['upload_folder'];
+        $uploadFolder = BASE_PATH . CONTENT_PATH . '/files';
         $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
         if (($_POST) && isset($_POST['rm_media']) && (null !== $mediaLibrary) && ($application->isRegistered('phire-media'))) {
             $media    = new \Phire\Media\Model\Media();
@@ -241,7 +241,7 @@ class FieldValue
             $fields       = $controller->view()->form->getFields();
             $modelId      = $controller->view()->id;
             $model        = str_replace('Form', 'Model', get_class($controller->view()->form));
-            $uploadFolder = $application->module('phire-fields')->config()['upload_folder'];
+            $uploadFolder = BASE_PATH . CONTENT_PATH . '/files';
             $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
 
             // Remove any files
@@ -358,7 +358,7 @@ class FieldValue
     public static function delete(AbstractController $controller, Application $application)
     {
         if ($_POST) {
-            $uploadFolder = $application->module('phire-fields')->config()['upload_folder'];
+            $uploadFolder = BASE_PATH . CONTENT_PATH . '/files';
             $mediaLibrary = $application->module('phire-fields')->config()['media_library'];
 
             foreach ($_POST as $key => $value) {

@@ -325,7 +325,7 @@ class IndexController extends AbstractController
                 $pages  = null;
                 $field  = new Model\Field();
 
-                $uploadFolder = $this->application->module('phire-fields')->config()['upload_folder'];
+                $uploadFolder = BASE_PATH . CONTENT_PATH . '/files';
 
                 switch ($asset) {
                     case ('files'):

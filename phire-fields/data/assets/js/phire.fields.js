@@ -203,7 +203,7 @@ phire.addField = function(fid, values) {
 
                     if (jax.cookie.load('phire') != '') {
                         var phireCookie = jax.cookie.load('phire');
-                        filePath = phireCookie.fields_upload_folder + '/' + values[fieldName][j];
+                        filePath = phireCookie.base_path + phireCookie.content_path + '/files/' + values[fieldName][j];
                     }
 
                     fileValues[values[fieldName][j].toString()] = 'Remove <a href="' + filePath + '" target="_blank">' + values[fieldName][j] + '</a>?';

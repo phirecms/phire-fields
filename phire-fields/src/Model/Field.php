@@ -187,7 +187,7 @@ class Field extends AbstractModel
     public function remove(array $fields, array $config)
     {
         if (isset($fields['rm_fields'])) {
-            $uploadFolder = $config['upload_folder'];
+            $uploadFolder = BASE_PATH . CONTENT_PATH . '/files';
             $mediaLibrary = $config['media_library'];
 
             foreach ($fields['rm_fields'] as $id) {
