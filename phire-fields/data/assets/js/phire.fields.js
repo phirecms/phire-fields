@@ -304,7 +304,7 @@ if (phire.loadEditor == undefined) {
 
         if (phire.editorIds.length > 0) {
             for (var i = 0; i < phire.editorIds.length; i++) {
-                if (editor == 'ckeditor') {
+                if (editor.indexOf('ckeditor') != -1) {
                     if (CKEDITOR.instances['field_' + phire.editorIds[i].id] == undefined) {
                         CKEDITOR.replace(
                             'field_' + phire.editorIds[i].id,
@@ -316,7 +316,23 @@ if (phire.loadEditor == undefined) {
                                 filebrowserImageBrowseUrl     : sysPath + '/fields/browser?editor=ckeditor&type=image',
                                 filebrowserImageBrowseLinkUrl : sysPath + '/fields/browser?editor=ckeditor&type=file',
                                 filebrowserWindowWidth        : '960',
-                                filebrowserWindowHeight       : '720'
+                                filebrowserWindowHeight       : '720',
+                                toolbarGroups                 : [
+                                    { name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
+                                    { name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
+                                    { name: 'links' },
+                                    { name: 'insert' },
+                                    { name: 'forms' },
+                                    { name: 'tools' },
+                                    { name: 'document',    groups: [ 'mode', 'document', 'doctools' ] },
+                                    { name: 'others' },
+                                    '/',
+                                    { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+                                    { name: 'paragraph',   groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ] },
+                                    { name: 'styles' },
+                                    { name: 'colors' },
+                                    { name: 'about' }
+                                ]
                             }
                         );
                     }
@@ -324,7 +340,7 @@ if (phire.loadEditor == undefined) {
                     jax('#field_' + eid).keyup(function () {
                         CKEDITOR.instances['field_' + eid].setData(jax('#field_' + eid).val());
                     });
-                } else if (editor == 'tinymce') {
+                } else if (editor.indexOf('tinymce') != -1) {
                     if (tinymce.editors['field_' + phire.editorIds[i].id] == undefined) {
                         tinymce.init(
                             {
@@ -384,10 +400,10 @@ phire.changeEditor = function() {
         jax('#field_' + id).show();
     } else {
         this.innerHTML = 'Source';
-        if (editor == 'ckeditor') {
-            phire.loadEditor('ckeditor', id);
-        } else if (editor == 'tinymce') {
-            phire.loadEditor('tinymce', id);
+        if (editor.indexOf('ckeditor') != -1) {
+            phire.loadEditor(editor, id);
+        } else if (editor.indexOf('tinymce') != -1) {
+            phire.loadEditor(editor, id);
         }
     }
 
@@ -478,7 +494,7 @@ jax(document).ready(function(){
             var head   = document.getElementsByTagName('head')[0];
             var script = document.createElement("script");
             switch (editor) {
-                case 'ckeditor':
+                case 'ckeditor-local':
                     script.src    = path + '/modules/phire/assets/js/ckeditor/ckeditor.js';
                     script.onload = script.onreadystatechange = function() {
                         if (typeof CKEDITOR != 'undefined') {
@@ -488,8 +504,28 @@ jax(document).ready(function(){
                     head.appendChild(script);
                     break;
 
-                case 'tinymce':
+                case 'ckeditor-remote':
+                    script.src    = '//cdn.ckeditor.com/4.5.7/full/ckeditor.js';
+                    script.onload = script.onreadystatechange = function() {
+                        if (typeof CKEDITOR != 'undefined') {
+                            phire.loadEditor('ckeditor');
+                        }
+                    };
+                    head.appendChild(script);
+                    break;
+
+                case 'tinymce-local':
                     script.src    = path + '/modules/phire/assets/js/tinymce/tinymce.min.js';
+                    script.onload = script.onreadystatechange = function() {
+                        if (typeof tinymce != 'undefined') {
+                            phire.loadEditor('tinymce');
+                        }
+                    };
+                    head.appendChild(script);
+                    break;
+
+                case 'tinymce-remote':
+                    script.src    = '//tinymce.cachefly.net/4.0/tinymce.min.js';
                     script.onload = script.onreadystatechange = function() {
                         if (typeof tinymce != 'undefined') {
                             phire.loadEditor('tinymce');

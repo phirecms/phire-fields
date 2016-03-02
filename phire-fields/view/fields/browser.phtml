@@ -31,11 +31,11 @@
     <link rel="shortcut icon" href="<?=$contentPath; ?>/assets/phire/img/phire-icon.png" type="image/png" />
 
 <?php
-    $click = ($_GET['editor'] == 'ckeditor') ?
+    $click = (strpos($_GET['editor'], 'ckeditor') !== false) ?
         'window.opener.CKEDITOR.tools.callFunction(funcNum, this.href.substring(window.location.origin.length)); window.close(); return false;' :
         'top.tinymce.activeEditor.windowManager.getParams().oninsert(this.href.substring(window.location.origin.length)); top.tinymce.activeEditor.windowManager.close(); return false;';
 ?>
-<?php if ($_GET['editor'] == 'ckeditor'): ?>
+<?php if (strpos($_GET['editor'], 'ckeditor') !== false): ?>
     <script type="text/javascript">
         function getUrlParam(paramName) {
             var reParam = new RegExp('(?:[\?&]|&amp;)' + paramName + '=([^&]+)', 'i');

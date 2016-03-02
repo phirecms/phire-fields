@@ -101,7 +101,13 @@ return [
             ],
             'editor' => [
                 'type'       => 'select',
-                'value'      => ['source' => 'Source'],
+                'value'      => [
+                    'source' => 'Source',
+                    'ckeditor-local'  => 'CKEditor [Local]',
+                    'ckeditor-remote' => 'CKEditor [Remote]',
+                    'tinymce-local'   => 'TinyMCE [Local]',
+                    'tinymce-remote'  => 'TinyMCE [Remote]'
+                ],
                 'marked'     => 'source',
                 'attributes' => [
                     'style' => 'display: none;'

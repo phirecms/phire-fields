@@ -52,11 +52,11 @@ class IndexController extends AbstractController
 
         $fields = $this->application->config()['forms']['Phire\Fields\Form\Field'];
 
-        if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
-            $fields[1]['editor']['value']['ckeditor'] = 'CKEditor';
+        if (!file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
+            unset($fields[1]['editor']['value']['ckeditor-local']);
         }
-        if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/tinymce')) {
-            $fields[1]['editor']['value']['tinymce'] = 'TinyMCE';
+        if (!file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/tinymce')) {
+            unset($fields[1]['editor']['value']['tinymce-local']);
         }
 
         $groups = Table\FieldGroups::findAll();
@@ -104,11 +104,11 @@ class IndexController extends AbstractController
 
         $fields = $this->application->config()['forms']['Phire\Fields\Form\Field'];
 
-        if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
-            $fields[1]['editor']['value']['ckeditor'] = 'CKEditor';
+        if (!file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/ckeditor')) {
+            unset($fields[1]['editor']['value']['ckeditor-local']);
         }
-        if (file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/tinymce')) {
-            $fields[1]['editor']['value']['tinymce'] = 'TinyMCE';
+        if (!file_exists(getcwd() . CONTENT_PATH . '/modules/phire/assets/js/tinymce')) {
+            unset($fields[1]['editor']['value']['tinymce-local']);
         }
         if (null !== $field->editor) {
             $fields[1]['editor']['attributes']['style'] = 'display: block;';
