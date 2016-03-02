@@ -298,6 +298,10 @@ class Field
             $fieldValues = null;
         }
 
+        if ($field->label == 'Comments') {
+            $var = 123;
+        }
+
         $label = ((null !== $field->editor) && ($field->editor != 'source')) ?
             $label = $field->label . ' <span class="editor-link-span">[ <a class="editor-link" data-editor="' .
                 $field->editor . '" data-fid="' . $field->id . '" data-path="' . BASE_PATH . CONTENT_PATH .
