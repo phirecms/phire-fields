@@ -81,7 +81,7 @@ class FieldValue extends AbstractModel
     /**
      * Get all model objects with dynamic field values
      *
-     * @param  string $class
+     * @param  mixed  $class
      * @param  array  $params
      * @param  string $method
      * @param  array $filters
@@ -90,22 +90,26 @@ class FieldValue extends AbstractModel
      */
     public static function getModelObjects($class, array $params = [], $method = 'getAll', array $filters = [])
     {
-        $model = new $class();
+        if (is_array($class)) {
+            $rows  = $class;
+        } else {
+            $model = new $class();
 
-        if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, $method)) {
-            throw new \Exception(
-                'Error: The model class must be an instance of Phire\Model\AbstractModel and have the \'' . $method .  '\' method.'
-            );
+            if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, $method)) {
+                throw new \Exception(
+                    'Error: The model class must be an instance of Phire\Model\AbstractModel and have the \'' . $method . '\' method.'
+                );
+            }
+
+            $reflect      = new \ReflectionMethod($class, $method);
+            $methodParams = $reflect->getParameters();
+            $realParams   = [];
+            foreach ($methodParams as $param) {
+                $realParams[$param->name] = (isset($params[$param->name]) ? $params[$param->name] : null);
+            }
+
+            $rows = call_user_func_array([$model, $method], $realParams);
         }
-
-        $reflect      = new \ReflectionMethod($class, $method);
-        $methodParams = $reflect->getParameters();
-        $realParams   = [];
-        foreach ($methodParams as $param) {
-            $realParams[$param->name] = (isset($params[$param->name]) ? $params[$param->name] : null);
-        }
-
-        $rows = call_user_func_array([$model, $method], $realParams);
 
         foreach ($rows as $row) {
             $sql   = Table\Fields::sql();
@@ -172,24 +176,28 @@ class FieldValue extends AbstractModel
     /**
      * Get single model object with dynamic field values
      *
-     * @param  string $class
+     * @param  mixed  $class
      * @param  array  $params
      * @param  string $method
      * @param  array $filters
      * @throws \Exception
      * @return mixed
      */
-    public static function getModelObject($class, array $params, $method = 'getById', array $filters = [])
+    public static function getModelObject($class, array $params = [], $method = 'getById', array $filters = [])
     {
-        $model = new $class();
+        if ($class instanceof \Phire\Model\AbstractModel) {
+            $model = $class;
+        } else {
+            $model = new $class();
 
-        if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, $method)) {
-            throw new \Exception(
-                'Error: The model class must be an instance of Phire\Model\AbstractModel and have the \'' . $method .  '\' method.'
-            );
+            if (!($model instanceof \Phire\Model\AbstractModel) || !method_exists($model, $method)) {
+                throw new \Exception(
+                    'Error: The model class must be an instance of Phire\Model\AbstractModel and have the \'' . $method . '\' method.'
+                );
+            }
+
+            call_user_func_array([$model, $method], $params);
         }
-
-        call_user_func_array([$model, $method], $params);
 
         if (isset($model->id)) {
             $model = self::getModelObjectValues($model, null, $filters);
