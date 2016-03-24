@@ -246,6 +246,8 @@ class Field
     public static function createFieldConfig(\ArrayObject $field)
     {
         $attribs = null;
+        $min     = null;
+        $max     = null;
         if (!empty($field->attributes)) {
             $attribs    = [];
             $attributes = explode('" ', $field->attributes);
@@ -256,6 +258,12 @@ class Field
                     $att = substr($att, 0, -1);
                 }
                 $attribs[$attributeAry[0]] = $att;
+                if ($attributeAry[0] == 'min') {
+                    $min = $att;
+                }
+                if ($attributeAry[0] == 'max') {
+                    $max = $att;
+                }
             }
         }
 
@@ -298,10 +306,6 @@ class Field
             $fieldValues = null;
         }
 
-        if ($field->label == 'Comments') {
-            $var = 123;
-        }
-
         $label = ((null !== $field->editor) && ($field->editor != 'source')) ?
             $label = $field->label . ' <span class="editor-link-span">[ <a class="editor-link" data-editor="' .
                 $field->editor . '" data-fid="' . $field->id . '" data-path="' . BASE_PATH . CONTENT_PATH .
@@ -337,7 +341,9 @@ class Field
             'attributes' => $attribs,
             'validators' => $validators,
             'value'      => $fieldValues,
-            'marked'     => $fieldDefaultValues
+            'marked'     => $fieldDefaultValues,
+            'min'        => $min,
+            'max'        => $max
         ];
     }
 

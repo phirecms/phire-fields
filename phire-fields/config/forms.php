@@ -85,15 +85,31 @@ return [
                 'label'    => 'Field Element Type',
                 'required' => true,
                 'value'    => [
-                    'text'             => 'text',
-                    'textarea'         => 'textarea',
-                    'textarea-history' => 'textarea-history',
-                    'email'            => 'email',
-                    'select'           => 'select',
-                    'checkbox'         => 'checkbox',
-                    'radio'            => 'radio',
-                    'file'             => 'file',
-                    'hidden'           => 'hidden'
+                    'HTML' => [
+                        'text'             => 'text',
+                        'textarea'         => 'textarea',
+                        'textarea-history' => 'textarea-history',
+                        'select'           => 'select',
+                        'checkbox'         => 'checkbox',
+                        'radio'            => 'radio',
+                        'file'             => 'file',
+                        'hidden'           => 'hidden'
+                    ],
+                    'HTML 5' => [
+                        'email'            => 'email',
+                        'date'             => 'date',
+                        'time'             => 'time',
+                        'datetime'         => 'datetime',
+                        'datetime-local'   => 'datetime-local',
+                        'month'            => 'month',
+                        'week'             => 'week',
+                        'number'           => 'number',
+                        'range'            => 'range',
+                        'search'           => 'search',
+                        'tel'              => 'tel',
+                        'url'              => 'url',
+                        'color'            => 'color'
+                    ]
                 ],
                 'attributes' => [
                     'onchange' => 'phire.toggleEditor(this);'

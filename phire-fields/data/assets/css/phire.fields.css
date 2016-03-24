@@ -83,6 +83,10 @@
     padding-left: 4px;
 }
 
+#field-form-field-group-2 dd select#type {
+    height: 34px;
+}
+
 #browser-container {
     position: relative;
     min-height: 100%;
