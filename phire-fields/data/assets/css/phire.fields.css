@@ -87,6 +87,17 @@
     height: 34px;
 }
 
+#field-form-field-group-2 dd select#type > optgroup {
+    background-color: #ccc;
+    color: #666;
+}
+
+#field-form-field-group-2 dd select#type > optgroup > option {
+    padding-left: 10px;
+    background-color: #efefef;
+    color: #727170;
+}
+
 #browser-container {
     position: relative;
     min-height: 100%;
