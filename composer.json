@@ -1,0 +1,30 @@
+{
+    "name": "phirecms/phire-fields",
+    "description": "Fields module for Phire CMS",
+    "keywords": [
+        "content management system",
+        "cms",
+        "phire",
+        "phire cms",
+        "php cms"
+    ],
+    "homepage": "http://www.phirecms.org/",
+    "license": "New BSD",
+    "authors": [
+        {
+            "name": "Nick Sagona",
+            "email": "dev@nolainteractive.com",
+            "homepage": "http://www.nolainteractive.com/"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Phire\\Fields\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
