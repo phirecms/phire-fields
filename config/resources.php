@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * phire-forms resources
+ */
 return [
     'fields' => [
         'index',

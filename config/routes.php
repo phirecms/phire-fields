@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * phire-forms routes
+ */
 return [
     APP_URI => [
         '/fields[/]' => [
