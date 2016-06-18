@@ -41,7 +41,7 @@ class FieldValue
      */
     public static function getAll(AbstractController $controller, Application $application)
     {
-        if ((!$_POST) && ($controller->hasView()) && (null !== $controller->view()->form) &&
+        if ((!$_POST) && ($controller->hasView()) && ($controller->view()->form !== false) &&
             ((int)$controller->view()->form->id != 0) && (null !== $controller->view()->form) &&
             ($controller->view()->form instanceof \Pop\Form\Form)) {
             $fields  = $controller->view()->form->getFields();
@@ -258,7 +258,7 @@ class FieldValue
     public static function save(AbstractController $controller, Application $application)
     {
         if (($_POST) && ($controller->hasView()) && (null !== $controller->view()->id) &&
-            (null !== $controller->view()->form) && ($controller->view()->form instanceof \Pop\Form\Form)) {
+            (null !== $controller->view()->form) && ($controller->view()->form !== false) && ($controller->view()->form instanceof \Pop\Form\Form)) {
             $fields       = $controller->view()->form->getFields();
             $modelId      = $controller->view()->id;
             $model        = str_replace('Form', 'Model', get_class($controller->view()->form));
