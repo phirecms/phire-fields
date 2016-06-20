@@ -47,7 +47,9 @@ jax(document).ready(function(){
                         }
                         var eid = phire.editorIds[i].id;
                         jax('#field_' + eid).keyup(function () {
-                            CKEDITOR.instances['field_' + eid].setData(jax('#field_' + eid).val());
+                            if ((typeof CKEDITOR !== 'undefined') && (CKEDITOR.instances['field_' + eid] != undefined)) {
+                                CKEDITOR.instances['field_' + eid].setData(jax('#field_' + eid).val());
+                            }
                         });
                     } else if (editor.indexOf('tinymce') != -1) {
                         if (tinymce.editors['field_' + phire.editorIds[i].id] == undefined) {
@@ -74,7 +76,9 @@ jax(document).ready(function(){
                         }
                         var eid = phire.editorIds[i].id;
                         jax('#field_' + eid).keyup(function () {
-                            tinymce.editors['field_' + eid].setContent(jax('#field_' + eid).val());
+                            if ((typeof tinymce !== 'undefined') && (tinymce.editors['field_' + eid] != undefined)) {
+                                tinymce.editors['field_' + eid].setContent(jax('#field_' + eid).val());
+                            }
                         });
                     }
                 }
