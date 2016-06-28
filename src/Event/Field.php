@@ -261,10 +261,10 @@ class Field
     /**
      * Create field config from field object
      *
-     * @param  \ArrayObject $field
+     * @param  mixed $field
      * @return array
      */
-    public static function createFieldConfig(\ArrayObject $field)
+    public static function createFieldConfig($field)
     {
         $attribs = null;
         $min     = null;
