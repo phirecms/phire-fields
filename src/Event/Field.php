@@ -89,8 +89,8 @@ class Field
     public static function addFields(Application $application)
     {
         $forms  = $application->config()['forms'];
-        $fields = Table\Fields::findBy(['group_id' => null], ['order' => 'order']);
-        $groups = Table\FieldGroups::findAll(['order' => 'order']);
+        $fields = Table\Fields::findBy(['group_id' => null], ['order' => 'order'], Table\FieldGroups::ROW_AS_ARRAYOBJECT);
+        $groups = Table\FieldGroups::findAll(['order' => 'order'], Table\FieldGroups::ROW_AS_ARRAYOBJECT);
 
         if ($fields->count() > 0) {
             foreach ($fields->rows() as $field) {

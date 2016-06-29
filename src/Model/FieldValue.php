@@ -259,7 +259,6 @@ class FieldValue extends AbstractModel
                 $field->models = unserialize($field->models);
                 if (self::isFieldAllowed($field->models, $params) && in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
                     $select[$field->name] = DB_PREFIX . 'field_' . $field->name . '.value';
-                    $select[$field->name . '_revision'] = DB_PREFIX . 'field_' . $field->name . '.revision';
                 }
             }
 
@@ -277,8 +276,6 @@ class FieldValue extends AbstractModel
                     $sql->select()->join(DB_PREFIX . 'field_' . $field->name, [$table . '.id' => DB_PREFIX . 'field_' . $field->name . '.model_id']);
                 }
             }
-
-            $sql->select()->groupBy($table . '.id');
 
             foreach ($fields->rows() as $field) {
                 if (self::isFieldAllowed($field->models, $params) && in_array(DB_PREFIX . 'field_' . $field->name, $allTables)) {
@@ -308,7 +305,7 @@ class FieldValue extends AbstractModel
                 ->setPrimaryKeys(['id'])
                 ->setTable($table);
 
-            $record->executeQuery($sql);
+            $record->executeQuery($sql, Record::ROW_AS_ARRAYOBJECT);
 
             $values = $record->rows();
 
@@ -357,7 +354,7 @@ class FieldValue extends AbstractModel
                 ->setPrimaryKeys(['id'])
                 ->setTable($table);
 
-            $record->executeQuery($sql);
+            $record->executeQuery($sql, Record::ROW_AS_ARRAYOBJECT);
 
             $values = $record->rows();
         }
@@ -380,7 +377,7 @@ class FieldValue extends AbstractModel
         $sql->select()->where('models LIKE :models');
 
         $value     = ($sql->getDbType() == \Pop\Db\Sql::SQLITE) ? '%' . $model . '%' : '%' . addslashes($model) . '%';
-        $fields    = Table\Fields::execute((string)$sql, ['models' => $value]);
+        $fields    = Table\Fields::execute((string)$sql, ['models' => $value], Record::ROW_AS_ARRAYOBJECT);
         $encrypted = [];
         $multiples = [];
 
@@ -418,7 +415,7 @@ class FieldValue extends AbstractModel
                 ->setPrimaryKeys(['id'])
                 ->setTable($table);
 
-            $record->executeStatement($sql, [$table . '.id' => $modelId]);
+            $record->executeStatement($sql, [$table . '.id' => $modelId], Record::ROW_AS_ARRAYOBJECT);
 
             $values = $record->getColumns();
 
@@ -445,7 +442,7 @@ class FieldValue extends AbstractModel
                         ->setPrimaryKeys(['id'])
                         ->setTable('field_' . $name);
 
-                    $fv->findRecordsBy(['model_id' => $modelId, 'model' => $model]);
+                    $fv->findRecordsBy(['model_id' => $modelId, 'model' => $model], Record::ROW_AS_ARRAYOBJECT);
                     if ($fv->hasRows()) {
                         $values[$name] = [];
                         foreach ($fv->rows() as $f) {
@@ -463,7 +460,7 @@ class FieldValue extends AbstractModel
                 ->setPrimaryKeys(['id'])
                 ->setTable($table);
 
-            $record->executeStatement($sql, [$table . '.id' => $modelId]);
+            $record->executeStatement($sql, [$table . '.id' => $modelId], Record::ROW_AS_ARRAYOBJECT);
 
             $values = $record->getColumns();
         }
