@@ -359,7 +359,15 @@ class FieldValue extends AbstractModel
             $values = $record->rows();
         }
 
-        return $values;
+        $filteredValues = [];
+
+        foreach ($values as $value) {
+            if (!in_array($value, $filteredValues)) {
+                $filteredValues[] = $value;
+            }
+        }
+
+        return $filteredValues;
     }
 
     /**
@@ -387,8 +395,6 @@ class FieldValue extends AbstractModel
             $where  = [];
             foreach ($fields->rows() as $field) {
                 $select[$field->name] = DB_PREFIX . 'field_' . $field->name . '.value';
-                $select[] = DB_PREFIX . 'field_' . $field->name . '.revision';
-                $where[]  = DB_PREFIX . 'field_' . $field->name . '.revision = 0';
             }
 
             $sql->select($select);
@@ -442,7 +448,7 @@ class FieldValue extends AbstractModel
                         ->setPrimaryKeys(['id'])
                         ->setTable('field_' . $name);
 
-                    $fv->findRecordsBy(['model_id' => $modelId, 'model' => $model], Record::ROW_AS_ARRAYOBJECT);
+                    $fv->findRecordsBy(['model_id' => $modelId, 'model' => $model], null, Record::ROW_AS_ARRAYOBJECT);
                     if ($fv->hasRows()) {
                         $values[$name] = [];
                         foreach ($fv->rows() as $f) {
